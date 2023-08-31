@@ -122,7 +122,7 @@ let cgImage = try ditheringEngine.dither(
 
 Here is an overview of the built-in palettes:
 
-### Black & White
+#### Black & White
 
 A palette with the two colors: black, and white.
 
@@ -143,7 +143,7 @@ let cgImage = try ditheringEngine.dither(
 )
 ```
 
-### Grayscale
+#### Grayscale
 
 A palette with all shades of gray.
 
@@ -164,7 +164,7 @@ let cgImage = try ditheringEngine.dither(
 )
 ```
 
-### Quantized Color
+#### Quantized Color
 
 A palette with quantized bits for the color channel. Specify the number of bits to use for color—from 0 to 8. The number of colors is given by 2^n where n is the number of bits.
 
@@ -189,7 +189,7 @@ let cgImage = try ditheringEngine.dither(
 )
 ```
 
-### CGA
+#### CGA
 
 A palette with the oldschool CGA palettes. CGA was a graphics card introduced in 1981 with the ability to display colour on the IBM PC. It used a 4 bit interface (Red, Green, Blue, Intensity) giving a total of 16 possible colors. Due to limited video memory however, the most common resolution of 320x200 would only allow you four colors on screen simultaneously. In this mode, d developer could choose from four palettes, with beautiful colour combinations such as black, cyan, magenta and white or black, green, red and yellow.
 
