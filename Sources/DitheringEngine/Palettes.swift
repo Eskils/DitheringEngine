@@ -126,7 +126,8 @@ public enum Palette: String, SettingsEnum, CaseIterable, Identifiable {
     case bw,
          grayscale,
          quantizedColor,
-         cga
+         cga,
+         custom
     
     func lut(fromPalettes palettes: Palettes, settings: PaletteSettingsConfiguration) -> BytePalette {
         switch self {
@@ -141,10 +142,13 @@ public enum Palette: String, SettingsEnum, CaseIterable, Identifiable {
         case .cga:
             let settings = (settings as? CGASettingsConfiguration) ?? .init()
             return settings.mode.value.palette(fromPalettes: palettes)
+        case .custom:
+            let settings = (settings as? CustomPaletteSettingsConfiguration) ?? .init()
+            return settings.palette.value
         }
     }
     
-    func settings() -> PaletteSettingsConfiguration {
+    public func settings() -> PaletteSettingsConfiguration {
         switch self {
         case .bw:
             return EmptyPaletteSettingsConfiguration()
@@ -154,6 +158,8 @@ public enum Palette: String, SettingsEnum, CaseIterable, Identifiable {
             return QuantizedColorSettingsConfiguration(bits: 0)
         case .cga:
             return CGASettingsConfiguration()
+        case .custom:
+            return CustomPaletteSettingsConfiguration()
         }
     }
     
@@ -167,6 +173,8 @@ public enum Palette: String, SettingsEnum, CaseIterable, Identifiable {
             return "Quantized color"
         case .cga:
             return "CGA"
+        case .custom:
+            return "Custom"
         }
     }
     

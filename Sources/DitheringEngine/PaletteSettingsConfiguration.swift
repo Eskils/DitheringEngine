@@ -21,7 +21,7 @@ public class EmptyPaletteSettingsConfiguration: PaletteSettingsConfiguration {
 }
 
 public class QuantizedColorSettingsConfiguration: PaletteSettingsConfiguration, ObservableObject {
-    let bits: CurrentValueSubject<Double, Never>
+    public let bits: CurrentValueSubject<Double, Never>
     
     /// Bytes can be anything from 0 to 8.
     public init(bits: Int) {
@@ -32,17 +32,25 @@ public class QuantizedColorSettingsConfiguration: PaletteSettingsConfiguration, 
 public class CGASettingsConfiguration: PaletteSettingsConfiguration, ObservableObject {
     public typealias Enum = Palette.CGAMode
     
-    let mode: CurrentValueSubject<Enum, Never>
+    public let mode: CurrentValueSubject<Enum, Never>
     
     public init(mode: Enum = .palette1High) {
         self.mode = CurrentValueSubject(mode)
     }
 }
 
+public class CustomPaletteSettingsConfiguration: PaletteSettingsConfiguration, ObservableObject {
+    public let palette: CurrentValueSubject<BytePalette, Never>
+    
+    public init(palette: BytePalette = .from(lutCollection: LUTCollection<UInt8>(entries: [SIMD3<UInt8>(0,0,0), SIMD3<UInt8>(255, 255, 255)]))) {
+        self.palette = CurrentValueSubject(palette)
+    }
+}
+
 public class DitherMethodSettingsConfiguration: PaletteSettingsConfiguration, ObservableObject {
     public typealias Enum = DitheringEngine.DitherMethod
     
-    let ditherMethod: CurrentValueSubject<Enum, Never>
+    public let ditherMethod: CurrentValueSubject<Enum, Never>
     
     public init(mode: Enum = .none) {
         self.ditherMethod = CurrentValueSubject(mode)
@@ -52,7 +60,7 @@ public class DitherMethodSettingsConfiguration: PaletteSettingsConfiguration, Ob
 public class PaletteSelectionSettingsConfiguration: PaletteSettingsConfiguration, ObservableObject {
     public typealias Enum = Palette
     
-    let palette: CurrentValueSubject<Enum, Never>
+    public let palette: CurrentValueSubject<Enum, Never>
     
     public init(mode: Enum = .bw) {
         self.palette = CurrentValueSubject(mode)
@@ -134,8 +142,8 @@ public enum FloydSteinbergDitheringDirection: String, SettingsEnum, Identifiable
 
 public class FloydSteinbergSettingsConfiguration: PaletteSettingsConfiguration, ObservableObject {
     
-    let matrix: CurrentValueSubject<[Int], Never>
-    let direction: CurrentValueSubject<FloydSteinbergDitheringDirection, Never>
+    public let matrix: CurrentValueSubject<[Int], Never>
+    public let direction: CurrentValueSubject<FloydSteinbergDitheringDirection, Never>
     
     public init(direction: FloydSteinbergDitheringDirection = .leftToRight, matrix: [Int] = [7, 3, 5, 1]) {
         self.matrix = CurrentValueSubject(matrix)

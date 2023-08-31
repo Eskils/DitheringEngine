@@ -1,0 +1,466 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		7B2BB6A229C45CD700DB1CE1 /* DocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2BB6A129C45CD700DB1CE1 /* DocumentPicker.swift */; };
+		7B644E4F293E362F00068ACD /* ImageViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B644E4E293E362F00068ACD /* ImageViewer.swift */; };
+		7B644E51293F2F8B00068ACD /* ToolbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B644E50293F2F8B00068ACD /* ToolbarView.swift */; };
+		7B644E53293F311000068ACD /* ToolbarViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B644E52293F311000068ACD /* ToolbarViewModel.swift */; };
+		7B644E5A293F38D000068ACD /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B644E59293F38D000068ACD /* AppState.swift */; };
+		7B644E5B293F38D700068ACD /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B644E55293F311F00068ACD /* ContentView.swift */; };
+		7B98C7E52AA0B15500F6D925 /* DitheringEngine in Frameworks */ = {isa = PBXBuildFile; productRef = 7B98C7E42AA0B15500F6D925 /* DitheringEngine */; };
+		7B98C7E72AA0B43700F6D925 /* PaletteSettingsConfiguration+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B98C7E62AA0B43700F6D925 /* PaletteSettingsConfiguration+Extension.swift */; };
+		7B98C7E92AA0B4C500F6D925 /* SettingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B98C7E82AA0B4C500F6D925 /* SettingView.swift */; };
+		7B98C7EB2AA0B50B00F6D925 /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B98C7EA2AA0B50B00F6D925 /* Helpers.swift */; };
+		7B99C2CE29388FDA002B6BB7 /* DitheringApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B99C2CD29388FDA002B6BB7 /* DitheringApp.swift */; };
+		7B99C2D229388FDB002B6BB7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7B99C2D129388FDB002B6BB7 /* Assets.xcassets */; };
+		7B99C2D529388FDB002B6BB7 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7B99C2D429388FDB002B6BB7 /* Preview Assets.xcassets */; };
+		7B99C2E229389020002B6BB7 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B99C2DD29389020002B6BB7 /* ImagePicker.swift */; };
+		7B99C2E72938916C002B6BB7 /* SafeSanFrancisco in Frameworks */ = {isa = PBXBuildFile; productRef = 7B99C2E62938916C002B6BB7 /* SafeSanFrancisco */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		7B2BB6A129C45CD700DB1CE1 /* DocumentPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentPicker.swift; sourceTree = "<group>"; };
+		7B644E4E293E362F00068ACD /* ImageViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewer.swift; sourceTree = "<group>"; };
+		7B644E50293F2F8B00068ACD /* ToolbarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarView.swift; sourceTree = "<group>"; };
+		7B644E52293F311000068ACD /* ToolbarViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarViewModel.swift; sourceTree = "<group>"; };
+		7B644E55293F311F00068ACD /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		7B644E59293F38D000068ACD /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		7B98C7E62AA0B43700F6D925 /* PaletteSettingsConfiguration+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PaletteSettingsConfiguration+Extension.swift"; sourceTree = "<group>"; };
+		7B98C7E82AA0B4C500F6D925 /* SettingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingView.swift; sourceTree = "<group>"; };
+		7B98C7EA2AA0B50B00F6D925 /* Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
+		7B98C7EC2AA0B71500F6D925 /* Dithering.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Dithering.entitlements; sourceTree = "<group>"; };
+		7B99C2CA29388FDA002B6BB7 /* Dithering.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dithering.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7B99C2CD29388FDA002B6BB7 /* DitheringApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DitheringApp.swift; sourceTree = "<group>"; };
+		7B99C2D129388FDB002B6BB7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		7B99C2D429388FDB002B6BB7 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		7B99C2DD29389020002B6BB7 /* ImagePicker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		7B99C2C729388FDA002B6BB7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7B99C2E72938916C002B6BB7 /* SafeSanFrancisco in Frameworks */,
+				7B98C7E52AA0B15500F6D925 /* DitheringEngine in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		7B644E54293F311700068ACD /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				7B644E58293F313600068ACD /* ImageViewerView */,
+				7B644E57293F312C00068ACD /* Toolbar */,
+				7B644E56293F312500068ACD /* Content */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		7B644E56293F312500068ACD /* Content */ = {
+			isa = PBXGroup;
+			children = (
+				7B644E55293F311F00068ACD /* ContentView.swift */,
+			);
+			path = Content;
+			sourceTree = "<group>";
+		};
+		7B644E57293F312C00068ACD /* Toolbar */ = {
+			isa = PBXGroup;
+			children = (
+				7B644E50293F2F8B00068ACD /* ToolbarView.swift */,
+				7B644E52293F311000068ACD /* ToolbarViewModel.swift */,
+			);
+			path = Toolbar;
+			sourceTree = "<group>";
+		};
+		7B644E58293F313600068ACD /* ImageViewerView */ = {
+			isa = PBXGroup;
+			children = (
+				7B644E4E293E362F00068ACD /* ImageViewer.swift */,
+			);
+			path = ImageViewerView;
+			sourceTree = "<group>";
+		};
+		7B99C2C129388FDA002B6BB7 = {
+			isa = PBXGroup;
+			children = (
+				7B99C2CC29388FDA002B6BB7 /* Dithering */,
+				7B99C2CB29388FDA002B6BB7 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7B99C2CB29388FDA002B6BB7 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7B99C2CA29388FDA002B6BB7 /* Dithering.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		7B99C2CC29388FDA002B6BB7 /* Dithering */ = {
+			isa = PBXGroup;
+			children = (
+				7B98C7EC2AA0B71500F6D925 /* Dithering.entitlements */,
+				7B99C2CD29388FDA002B6BB7 /* DitheringApp.swift */,
+				7B644E59293F38D000068ACD /* AppState.swift */,
+				7B98C7E62AA0B43700F6D925 /* PaletteSettingsConfiguration+Extension.swift */,
+				7B98C7E82AA0B4C500F6D925 /* SettingView.swift */,
+				7B98C7EA2AA0B50B00F6D925 /* Helpers.swift */,
+				7B644E54293F311700068ACD /* Views */,
+				7B99C2DD29389020002B6BB7 /* ImagePicker.swift */,
+				7B2BB6A129C45CD700DB1CE1 /* DocumentPicker.swift */,
+				7B99C2D129388FDB002B6BB7 /* Assets.xcassets */,
+				7B99C2D329388FDB002B6BB7 /* Preview Content */,
+			);
+			path = Dithering;
+			sourceTree = "<group>";
+		};
+		7B99C2D329388FDB002B6BB7 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				7B99C2D429388FDB002B6BB7 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7B99C2C929388FDA002B6BB7 /* Dithering */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7B99C2D829388FDB002B6BB7 /* Build configuration list for PBXNativeTarget "Dithering" */;
+			buildPhases = (
+				7B99C2C629388FDA002B6BB7 /* Sources */,
+				7B99C2C729388FDA002B6BB7 /* Frameworks */,
+				7B99C2C829388FDA002B6BB7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Dithering;
+			packageProductDependencies = (
+				7B99C2E62938916C002B6BB7 /* SafeSanFrancisco */,
+				7B98C7E42AA0B15500F6D925 /* DitheringEngine */,
+			);
+			productName = Dithering;
+			productReference = 7B99C2CA29388FDA002B6BB7 /* Dithering.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7B99C2C229388FDA002B6BB7 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1410;
+				LastUpgradeCheck = 1410;
+				TargetAttributes = {
+					7B99C2C929388FDA002B6BB7 = {
+						CreatedOnToolsVersion = 14.1;
+					};
+				};
+			};
+			buildConfigurationList = 7B99C2C529388FDA002B6BB7 /* Build configuration list for PBXProject "Dithering" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 7B99C2C129388FDA002B6BB7;
+			packageReferences = (
+				7B99C2E52938916C002B6BB7 /* XCRemoteSwiftPackageReference "safe-san-francisco" */,
+				7B98C7E32AA0B15500F6D925 /* XCLocalSwiftPackageReference "../.." */,
+			);
+			productRefGroup = 7B99C2CB29388FDA002B6BB7 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				7B99C2C929388FDA002B6BB7 /* Dithering */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7B99C2C829388FDA002B6BB7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7B99C2D529388FDB002B6BB7 /* Preview Assets.xcassets in Resources */,
+				7B99C2D229388FDB002B6BB7 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		7B99C2C629388FDA002B6BB7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7B98C7E72AA0B43700F6D925 /* PaletteSettingsConfiguration+Extension.swift in Sources */,
+				7B98C7E92AA0B4C500F6D925 /* SettingView.swift in Sources */,
+				7B644E5B293F38D700068ACD /* ContentView.swift in Sources */,
+				7B2BB6A229C45CD700DB1CE1 /* DocumentPicker.swift in Sources */,
+				7B98C7EB2AA0B50B00F6D925 /* Helpers.swift in Sources */,
+				7B644E51293F2F8B00068ACD /* ToolbarView.swift in Sources */,
+				7B99C2E229389020002B6BB7 /* ImagePicker.swift in Sources */,
+				7B644E5A293F38D000068ACD /* AppState.swift in Sources */,
+				7B644E53293F311000068ACD /* ToolbarViewModel.swift in Sources */,
+				7B644E4F293E362F00068ACD /* ImageViewer.swift in Sources */,
+				7B99C2CE29388FDA002B6BB7 /* DitheringApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		7B99C2D629388FDB002B6BB7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		7B99C2D729388FDB002B6BB7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		7B99C2D929388FDB002B6BB7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Dithering/Dithering.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Dithering/Preview Content\"";
+				DEVELOPMENT_TEAM = EUKTZ7725R;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skillbreak.Dithering;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,6";
+			};
+			name = Debug;
+		};
+		7B99C2DA29388FDB002B6BB7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Dithering/Dithering.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Dithering/Preview Content\"";
+				DEVELOPMENT_TEAM = EUKTZ7725R;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skillbreak.Dithering;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,6";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		7B99C2C529388FDA002B6BB7 /* Build configuration list for PBXProject "Dithering" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7B99C2D629388FDB002B6BB7 /* Debug */,
+				7B99C2D729388FDB002B6BB7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7B99C2D829388FDB002B6BB7 /* Build configuration list for PBXNativeTarget "Dithering" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7B99C2D929388FDB002B6BB7 /* Debug */,
+				7B99C2DA29388FDB002B6BB7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		7B98C7E32AA0B15500F6D925 /* XCLocalSwiftPackageReference "../.." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../..;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		7B99C2E52938916C002B6BB7 /* XCRemoteSwiftPackageReference "safe-san-francisco" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/shortcut/safe-san-francisco.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		7B98C7E42AA0B15500F6D925 /* DitheringEngine */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DitheringEngine;
+		};
+		7B99C2E62938916C002B6BB7 /* SafeSanFrancisco */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7B99C2E52938916C002B6BB7 /* XCRemoteSwiftPackageReference "safe-san-francisco" */;
+			productName = SafeSanFrancisco;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 7B99C2C229388FDA002B6BB7 /* Project object */;
+}

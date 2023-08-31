@@ -43,7 +43,7 @@ public class DitheringEngine {
         self.resultImageDescription = newResultImageDescription
     }
     
-    func generateOriginalImage() throws -> CGImage {
+    public func generateOriginalImage() throws -> CGImage {
         guard let imageDescription else {
             throw Error.noImageDescription
         }
@@ -51,7 +51,7 @@ public class DitheringEngine {
         return try imageDescription.makeCGImage()
     }
     
-    func generateResultImage() throws -> CGImage {
+    public func generateResultImage() throws -> CGImage {
         guard let resultImageDescription else {
             throw Error.noImageDescription
         }
@@ -237,7 +237,7 @@ extension DitheringEngine {
             }
         }
         
-        func settings() -> PaletteSettingsConfiguration {
+        public func settings() -> PaletteSettingsConfiguration {
             switch self {
             case .none:
                 return EmptyPaletteSettingsConfiguration()
