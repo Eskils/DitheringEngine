@@ -16,6 +16,16 @@ public class DitheringEngine {
     public init() {}
     
     public func set(image: CGImage) throws {
+        
+        let bitmapInfo = CGBitmapInfo(rawValue: (CGBitmapInfo.byteOrder32Big.rawValue | CGImageAlphaInfo.premultipliedLast.rawValue))
+        guard let image = convertColorspaceOf(
+            image: image,
+            toColorSpace: CGColorSpaceCreateDeviceRGB(),
+            withBitmapInfo: bitmapInfo.rawValue
+        ) else {
+            throw SetImage.Error.couldNotConvertColorspace
+        }
+        
         if image.bitsPerComponent != SetImage.bitsPerCompinent {
             throw SetImage.Error.invalidBitsPerComponent(image.bitsPerComponent)
         }

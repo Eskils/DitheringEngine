@@ -70,6 +70,37 @@ public struct LUTPalette<Color: ImageColor> {
         }
     }
     
+    public func colors() -> [SIMD3<UInt8>] {
+        switch type {
+        case .lut(let lut):
+            let colors = (0..<lut.count).map {
+                lut.getEntryAt(index: $0).toUInt8()
+            }
+            if lut.isColor {
+                
+                let count = min(16, colors.count)
+                let stride = colors.count / count
+                return (0..<count).flatMap { r in
+                    (0..<count).flatMap { g in
+                        (0..<count).map { b in
+                            let red     = colors[r * stride]
+                            let green   = colors[g * stride]
+                            let blue    = colors[b * stride]
+                            
+                            return SIMD3(x: red, y: green, z: blue)
+                        }
+                    }
+                }
+            } else {
+                return colors.map { color in
+                    SIMD3(x: color, y: color, z: color)
+                }
+            }
+        case .lutCollection(let collection):
+            return collection.entries.map { $0.toUInt8SIMD3() }
+        }
+    }
+    
     public enum PaletteType {
         case lut(LUT<Color>)
         case lutCollection(LUTCollection<Color>)

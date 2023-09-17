@@ -10,6 +10,7 @@ import SwiftUI
 import Combine
 
 public protocol PaletteSettingsConfiguration: AnyObject {
+    func didChange(storingIn cancellables: inout Set<AnyCancellable>) -> AnyPublisher<Any, Never>
 }
 
 public protocol SettingsEnum: CaseIterable, Hashable, Identifiable {
@@ -17,16 +18,28 @@ public protocol SettingsEnum: CaseIterable, Hashable, Identifiable {
 }
 
 public class EmptyPaletteSettingsConfiguration: PaletteSettingsConfiguration {
+    public func didChange(storingIn cancellables: inout Set<AnyCancellable>) -> AnyPublisher<Any, Never> {
+        return CurrentValueSubject(0)
+            .eraseToAnyPublisher()
+    }
+    
     public init() {}
 }
 
 public class QuantizedColorSettingsConfiguration: PaletteSettingsConfiguration, ObservableObject {
     public let bits: CurrentValueSubject<Double, Never>
     
+    public func didChange(storingIn cancellables: inout Set<AnyCancellable>) -> AnyPublisher<Any, Never> {
+        return pipingCVSToAnyForward(bits, storingIn: &cancellables)
+            .eraseToAnyPublisher()
+    }
+    
     /// Bytes can be anything from 0 to 8.
     public init(bits: Int) {
         self.bits = CurrentValueSubject(Double(bits))
     }
+    
+    
 }
 
 public class CGASettingsConfiguration: PaletteSettingsConfiguration, ObservableObject {
@@ -37,6 +50,11 @@ public class CGASettingsConfiguration: PaletteSettingsConfiguration, ObservableO
     public init(mode: Enum = .palette1High) {
         self.mode = CurrentValueSubject(mode)
     }
+    
+    public func didChange(storingIn cancellables: inout Set<AnyCancellable>) -> AnyPublisher<Any, Never> {
+        return pipingCVSToAnyForward(mode, storingIn: &cancellables)
+            .eraseToAnyPublisher()
+    }
 }
 
 public class CustomPaletteSettingsConfiguration: PaletteSettingsConfiguration, ObservableObject {
@@ -44,6 +62,11 @@ public class CustomPaletteSettingsConfiguration: PaletteSettingsConfiguration, O
     
     public init(palette: BytePalette = .from(lutCollection: LUTCollection<UInt8>(entries: [SIMD3<UInt8>(0,0,0), SIMD3<UInt8>(255, 255, 255)]))) {
         self.palette = CurrentValueSubject(palette)
+    }
+    
+    public func didChange(storingIn cancellables: inout Set<AnyCancellable>) -> AnyPublisher<Any, Never> {
+        return pipingCVSToAnyForward(palette, storingIn: &cancellables)
+            .eraseToAnyPublisher()
     }
 }
 
@@ -55,6 +78,11 @@ public class DitherMethodSettingsConfiguration: PaletteSettingsConfiguration, Ob
     public init(mode: Enum = .none) {
         self.ditherMethod = CurrentValueSubject(mode)
     }
+    
+    public func didChange(storingIn cancellables: inout Set<AnyCancellable>) -> AnyPublisher<Any, Never> {
+        return pipingCVSToAnyForward(ditherMethod, storingIn: &cancellables)
+            .eraseToAnyPublisher()
+    }
 }
 
 public class PaletteSelectionSettingsConfiguration: PaletteSettingsConfiguration, ObservableObject {
@@ -64,6 +92,11 @@ public class PaletteSelectionSettingsConfiguration: PaletteSettingsConfiguration
     
     public init(mode: Enum = .bw) {
         self.palette = CurrentValueSubject(mode)
+    }
+    
+    public func didChange(storingIn cancellables: inout Set<AnyCancellable>) -> AnyPublisher<Any, Never> {
+        return pipingCVSToAnyForward(palette, storingIn: &cancellables)
+            .eraseToAnyPublisher()
     }
 }
 
@@ -148,6 +181,13 @@ public class FloydSteinbergSettingsConfiguration: PaletteSettingsConfiguration, 
     public init(direction: FloydSteinbergDitheringDirection = .leftToRight, matrix: [Int] = [7, 3, 5, 1]) {
         self.matrix = CurrentValueSubject(matrix)
         self.direction = CurrentValueSubject(direction)
+    }
+    
+    public func didChange(storingIn cancellables: inout Set<AnyCancellable>) -> AnyPublisher<Any, Never> {
+        let erasedMatrix = pipingCVSToAnyForward(matrix, storingIn: &cancellables)
+        let erasedDirection = pipingCVSToAnyForward(direction, storingIn: &cancellables)
+        
+        return erasedMatrix.merge(with: erasedDirection).eraseToAnyPublisher()
     }
     
 }

@@ -163,6 +163,11 @@ public enum Palette: String, SettingsEnum, CaseIterable, Identifiable {
         }
     }
     
+    public func colors(settings: PaletteSettingsConfiguration) -> [SIMD3<UInt8>] {
+        let palette = lut(fromPalettes: Palettes(), settings: settings)
+        return palette.colors()
+    }
+    
     public var title: String {
         switch self {
         case .bw:

@@ -77,6 +77,15 @@ public struct LUTCollection<Color: ImageColor> {
         self.count = entries.count
     }
     
+    var entries: [SIMD3<Color>] {
+        var entries = [SIMD3<Color>](repeating: .zero, count: count)
+        entries.withUnsafeMutableBytes { mutableBuffer in
+            let pointer = mutableBuffer.baseAddress!.assumingMemoryBound(to: SIMD3<Color>.self)
+            pointer.update(from: lut, count: count)
+        }
+        return entries
+    }
+    
     public func closestColor<T: ImageColor>(to color: SIMD3<T>) -> SIMD3<Color> {
         let color = color.toFloatSIMD3()
         var result: SIMD3<Color> = .zero

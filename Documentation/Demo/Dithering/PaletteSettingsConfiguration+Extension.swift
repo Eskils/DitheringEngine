@@ -12,7 +12,7 @@ import DitheringEngine
 protocol PaletteSettingsConfigurationWithView: AnyObject {
     var views: [any SettingView] { get }
     var didChangePublisher: AnyPublisher<Any, Never> { get }
-    var settingsConfiguration: any PaletteSettingsConfiguration { get }
+    var settingsConfiguration: PaletteSettingsConfiguration { get }
 }
 
 protocol WithView: AnyObject {
