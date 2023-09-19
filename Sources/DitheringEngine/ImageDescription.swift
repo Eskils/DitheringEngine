@@ -143,9 +143,6 @@ extension GenericImageDescription {
             return .zero
         }
         
-        if isReleased {
-            return .zero
-        }
         
         getterBuffer.update(from: buffer.advanced(by: components * i), count: 3)
         let color = UnsafeRawPointer(getterBuffer)
