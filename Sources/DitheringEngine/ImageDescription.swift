@@ -45,7 +45,7 @@ extension SIMD3 where Scalar: ImageColor {
 }
 
 //FIXME: Test performance of class vs struct -> Class is safer
-class GenericImageDescription<Color: ImageColor> {
+final class GenericImageDescription<Color: ImageColor> {
     /// The width of the image.
     let width: Int
     
@@ -96,6 +96,7 @@ class GenericImageDescription<Color: ImageColor> {
         }
         
         buffer.deallocate()
+        getterBuffer.deallocate()
         isReleased = true
     }
     
@@ -139,6 +140,10 @@ extension GenericImageDescription {
     
     func getColorAt(index i: Int) -> SIMD3<Color> {
         if i < 0 || components * i + 2 > count {
+            return .zero
+        }
+        
+        if isReleased {
             return .zero
         }
         
