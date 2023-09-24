@@ -12,7 +12,7 @@ public class LUT<Color: ImageColor> {
     
     public let count: Int
     private let count_f: Float
-    public let buffer: UnsafeMutablePointer<Color>
+    public let buffer: UnsafePointer<Color>
     public let isColor: Bool
     
     public convenience init<T: Collection>(entries: T, isColor: Bool) where T.Element == Color, T.Index == Int {
@@ -24,7 +24,7 @@ public class LUT<Color: ImageColor> {
         self.init(buffer: buffer, count: entries.count, isColor: isColor)
     }
     
-    public init(buffer: UnsafeMutablePointer<Color>, count: Int, isColor: Bool) {
+    public init(buffer: UnsafePointer<Color>, count: Int, isColor: Bool) {
         self.count = count
         self.count_f = Float(count - 1)
         self.buffer = buffer

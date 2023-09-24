@@ -16,11 +16,18 @@ public struct Palettes {
         )
     }
     
-    public func grayscaleLut() -> BytePalette {
-        .from(lut: LUT(entries: (0..<255).map { $0 }, isColor: false))
+    public func grayscaleLut(withBits bits: Int) -> BytePalette {
+        let (entries, count) = equallySpacedColors(withBits: bits)
+        return .from(lut: ByteLUT(buffer: entries, count: count, isColor: false))
     }
     
     public func quantizedColorLut(withBits bits: Int) -> BytePalette {
+        let (entries, count) = equallySpacedColors(withBits: bits)
+        
+        return .from(lut: ByteLUT(buffer: entries, count: count, isColor: true))
+    }
+    
+    private func equallySpacedColors(withBits bits: Int) -> (entries: UnsafePointer<UInt8>, count: Int) {
         let bits = clamp(bits, min: 1, max: 8)
         
         let max = Int(UInt8.max)
@@ -33,7 +40,7 @@ public struct Palettes {
             entries[i] = UInt8(clamping: color)
         }
         
-        return .from(lut: ByteLUT(buffer: entries, count: count, isColor: true))
+        return (UnsafePointer(entries), count)
     }
     
     private func cgaColors() -> [SIMD3<UInt8>] {
@@ -137,7 +144,9 @@ public enum Palette: String, SettingsEnum, CaseIterable, Identifiable {
         case .bw:
             return palettes.bwLut()
         case .grayscale:
-            return palettes.grayscaleLut()
+            let settings = (settings as? QuantizedColorSettingsConfiguration) ?? .init(bits: 0)
+            let bits = Int(settings.bits.value)
+            return palettes.grayscaleLut(withBits: bits)
         case .quantizedColor:
             let settings = (settings as? QuantizedColorSettingsConfiguration) ?? .init(bits: 0)
             let bits = Int(settings.bits.value)
@@ -156,7 +165,7 @@ public enum Palette: String, SettingsEnum, CaseIterable, Identifiable {
         case .bw:
             return EmptyPaletteSettingsConfiguration()
         case .grayscale:
-            return EmptyPaletteSettingsConfiguration()
+            return QuantizedColorSettingsConfiguration(bits: 0)
         case .quantizedColor:
             return QuantizedColorSettingsConfiguration(bits: 0)
         case .cga:

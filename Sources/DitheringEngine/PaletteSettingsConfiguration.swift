@@ -29,17 +29,16 @@ public class EmptyPaletteSettingsConfiguration: PaletteSettingsConfiguration {
 public class QuantizedColorSettingsConfiguration: PaletteSettingsConfiguration, ObservableObject {
     public let bits: CurrentValueSubject<Double, Never>
     
-    public func didChange(storingIn cancellables: inout Set<AnyCancellable>) -> AnyPublisher<Any, Never> {
-        return pipingCVSToAnyForward(bits, storingIn: &cancellables)
-            .eraseToAnyPublisher()
-    }
-    
     /// Bytes can be anything from 0 to 8.
     public init(bits: Int) {
         self.bits = CurrentValueSubject(Double(bits))
     }
     
-    
+    public func didChange(storingIn cancellables: inout Set<AnyCancellable>) -> AnyPublisher<Any, Never> {
+        bits
+            .map { $0 as Any }
+            .eraseToAnyPublisher()
+    }
 }
 
 public class CGASettingsConfiguration: PaletteSettingsConfiguration, ObservableObject {
@@ -52,7 +51,8 @@ public class CGASettingsConfiguration: PaletteSettingsConfiguration, ObservableO
     }
     
     public func didChange(storingIn cancellables: inout Set<AnyCancellable>) -> AnyPublisher<Any, Never> {
-        return pipingCVSToAnyForward(mode, storingIn: &cancellables)
+        mode
+            .map { $0 as Any }
             .eraseToAnyPublisher()
     }
 }
@@ -65,7 +65,8 @@ public class CustomPaletteSettingsConfiguration: PaletteSettingsConfiguration, O
     }
     
     public func didChange(storingIn cancellables: inout Set<AnyCancellable>) -> AnyPublisher<Any, Never> {
-        return pipingCVSToAnyForward(palette, storingIn: &cancellables)
+        palette
+            .map { $0 as Any }
             .eraseToAnyPublisher()
     }
 }
@@ -80,7 +81,8 @@ public class DitherMethodSettingsConfiguration: PaletteSettingsConfiguration, Ob
     }
     
     public func didChange(storingIn cancellables: inout Set<AnyCancellable>) -> AnyPublisher<Any, Never> {
-        return pipingCVSToAnyForward(ditherMethod, storingIn: &cancellables)
+        ditherMethod
+            .map { $0 as Any }
             .eraseToAnyPublisher()
     }
 }
@@ -95,8 +97,10 @@ public class PaletteSelectionSettingsConfiguration: PaletteSettingsConfiguration
     }
     
     public func didChange(storingIn cancellables: inout Set<AnyCancellable>) -> AnyPublisher<Any, Never> {
-        return pipingCVSToAnyForward(palette, storingIn: &cancellables)
+        palette
+            .map { $0 as Any }
             .eraseToAnyPublisher()
+            
     }
 }
 
@@ -184,10 +188,8 @@ public class FloydSteinbergSettingsConfiguration: PaletteSettingsConfiguration, 
     }
     
     public func didChange(storingIn cancellables: inout Set<AnyCancellable>) -> AnyPublisher<Any, Never> {
-        let erasedMatrix = pipingCVSToAnyForward(matrix, storingIn: &cancellables)
-        let erasedDirection = pipingCVSToAnyForward(direction, storingIn: &cancellables)
         
-        return erasedMatrix.combineLatest(erasedDirection, { matrix, direction in
+        return matrix.combineLatest(direction, { matrix, direction in
             return [matrix, direction] as Any
         })
             .dropFirst()
