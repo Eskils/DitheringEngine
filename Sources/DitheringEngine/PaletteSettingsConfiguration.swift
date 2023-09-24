@@ -187,7 +187,11 @@ public class FloydSteinbergSettingsConfiguration: PaletteSettingsConfiguration, 
         let erasedMatrix = pipingCVSToAnyForward(matrix, storingIn: &cancellables)
         let erasedDirection = pipingCVSToAnyForward(direction, storingIn: &cancellables)
         
-        return erasedMatrix.merge(with: erasedDirection).eraseToAnyPublisher()
+        return erasedMatrix.combineLatest(erasedDirection, { matrix, direction in
+            return [matrix, direction] as Any
+        })
+            .dropFirst()
+            .eraseToAnyPublisher()
     }
     
 }
