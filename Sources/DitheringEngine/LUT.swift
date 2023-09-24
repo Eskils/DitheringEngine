@@ -41,7 +41,7 @@ public class LUT<Color: ImageColor> {
     
     /// Returns the entry corresponding to the given threshold. Preferable for grayscale.
     public func getEntryWith(threshold: Float) -> Color {
-        let index = Int(clampDecimal(threshold) * count_f)
+        let index = Int((clampDecimal(threshold) * count_f).rounded())
         return buffer[index]
     }
     
@@ -52,6 +52,35 @@ public class LUT<Color: ImageColor> {
         let b = self.getEntryWith(threshold: b)
         
         return SIMD3(x: r, y: g, z: b)
+    }
+    
+    public func toLUTCollection() -> LUTCollection<Color> {
+        let colors = (0..<self.count).map {
+            self.getEntryAt(index: $0)
+        }
+        let simdColors: [SIMD3<Color>]
+        if self.isColor {
+            
+            let count = min(16, colors.count)
+            let stride = colors.count / count
+            simdColors = (0..<count).flatMap { r in
+                (0..<count).flatMap { g in
+                    (0..<count).map { b in
+                        let red     = colors[r * stride]
+                        let green   = colors[g * stride]
+                        let blue    = colors[b * stride]
+                        
+                        return SIMD3(x: red, y: green, z: blue)
+                    }
+                }
+            }
+        } else {
+            simdColors = colors.map { color in
+                SIMD3(x: color, y: color, z: color)
+            }
+        }
+        
+        return LUTCollection(entries: simdColors)
     }
     
     deinit {

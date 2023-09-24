@@ -10,7 +10,10 @@ import Foundation
 public struct Palettes {
     
     public func bwLut() -> BytePalette {
-        .from(lut: LUT(entries: [0, 255], isColor: false))
+        .from(lutCollection:
+                LUT(entries: [0, 255], isColor: false)
+                    .toLUTCollection()
+        )
     }
     
     public func grayscaleLut() -> BytePalette {
@@ -207,8 +210,6 @@ public enum Palette: String, SettingsEnum, CaseIterable, Identifiable {
         /// All 16 colors
         case textMode
         
-        case noBlack
-        
         fileprivate func palette(fromPalettes palettes: Palettes) -> BytePalette {
             switch self {
             case .palette0Low:
@@ -225,13 +226,6 @@ public enum Palette: String, SettingsEnum, CaseIterable, Identifiable {
                 return palettes.cgaColorMode5LowLut()
             case .mode5High:
                 return palettes.cgaColorMode5HighLut()
-            case .noBlack:
-                return BytePalette.from(lutCollection: .init(entries: [
-                    .from32Bits(0x00_00_AA),    //  1, Blue
-                    .from32Bits(0xAA_AA_00),    //  2, Green
-                    .from32Bits(0x00_AA_AA),    //  3, Cyan
-                    .from32Bits(0xAA_00_00),    //  4, Red
-                ]))
             }
         }
         
@@ -251,8 +245,6 @@ public enum Palette: String, SettingsEnum, CaseIterable, Identifiable {
                 return "Mode 5 | High"
             case .textMode:
                 return "Text mode"
-            case .noBlack:
-                return "No black"
             }
         }
         
