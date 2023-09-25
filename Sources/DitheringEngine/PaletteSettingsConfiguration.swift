@@ -57,6 +57,22 @@ public class CGASettingsConfiguration: PaletteSettingsConfiguration, ObservableO
     }
 }
 
+public class Apple2SettingsConfiguration: PaletteSettingsConfiguration, ObservableObject {
+    public typealias Enum = Palette.Apple2Mode
+    
+    public let mode: CurrentValueSubject<Enum, Never>
+    
+    public init(mode: Enum = .hiRes) {
+        self.mode = CurrentValueSubject(mode)
+    }
+    
+    public func didChange(storingIn cancellables: inout Set<AnyCancellable>) -> AnyPublisher<Any, Never> {
+        mode
+            .map { $0 as Any }
+            .eraseToAnyPublisher()
+    }
+}
+
 public class CustomPaletteSettingsConfiguration: PaletteSettingsConfiguration, ObservableObject {
     public let palette: CurrentValueSubject<BytePalette, Never>
     

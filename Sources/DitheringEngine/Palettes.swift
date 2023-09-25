@@ -130,6 +130,49 @@ public struct Palettes {
         ]))
     }
     
+    public func apple2LoRes() -> BytePalette {
+        .from(lutCollection: ByteLUTCollection(entries: [
+            .from32Bits(0x000000),
+            .from32Bits(0x99035F),
+            .from32Bits(0x4204E1),
+            .from32Bits(0xCA13FE),
+            
+            .from32Bits(0x007310),
+            .from32Bits(0x7F7F7F),
+            .from32Bits(0x2497FF),
+            .from32Bits(0xAAA2FF),
+            
+            .from32Bits(0x4F5101),
+            .from32Bits(0xF05C00),
+            .from32Bits(0xBEBEBE),
+            .from32Bits(0xFF85E1),
+            
+            .from32Bits(0x12CA07),
+            .from32Bits(0xCED413),
+            .from32Bits(0x51F595),
+            .from32Bits(0xFFFFFF),
+        ]))
+    }
+    
+    public func apple2HiRes() -> BytePalette {
+        .from(lutCollection: ByteLUTCollection(entries: [
+            .from32Bits(0x000000),
+            .from32Bits(0xFFFFFF),
+            .from32Bits(0x20C000),
+            .from32Bits(0xA000FF),
+            .from32Bits(0x0080FF),
+            .from32Bits(0xF05000),
+        ]))
+    }
+    
+    public func gameBoy() -> BytePalette {
+        .from(lutCollection: ByteLUTCollection(entries: [
+            .from32Bits(0x9BBC0F),
+            .from32Bits(0x8BAC0F),
+            .from32Bits(0x306230),
+            .from32Bits(0x0F380F),
+        ]))
+    }
 }
 
 public enum Palette: String, SettingsEnum, CaseIterable, Identifiable {
@@ -137,6 +180,8 @@ public enum Palette: String, SettingsEnum, CaseIterable, Identifiable {
          grayscale,
          quantizedColor,
          cga,
+         apple2,
+         gameBoy,
          custom
     
     func lut(fromPalettes palettes: Palettes, settings: PaletteSettingsConfiguration) -> BytePalette {
@@ -154,6 +199,11 @@ public enum Palette: String, SettingsEnum, CaseIterable, Identifiable {
         case .cga:
             let settings = (settings as? CGASettingsConfiguration) ?? .init()
             return settings.mode.value.palette(fromPalettes: palettes)
+        case .apple2:
+            let settings = (settings as? Apple2SettingsConfiguration) ?? .init()
+            return settings.mode.value.palette(fromPalettes: palettes)
+        case .gameBoy:
+            return palettes.gameBoy()
         case .custom:
             let settings = (settings as? CustomPaletteSettingsConfiguration) ?? .init()
             return settings.palette.value
@@ -170,6 +220,10 @@ public enum Palette: String, SettingsEnum, CaseIterable, Identifiable {
             return QuantizedColorSettingsConfiguration(bits: 0)
         case .cga:
             return CGASettingsConfiguration()
+        case .apple2:
+            return Apple2SettingsConfiguration()
+        case .gameBoy:
+            return EmptyPaletteSettingsConfiguration()
         case .custom:
             return CustomPaletteSettingsConfiguration()
         }
@@ -190,6 +244,10 @@ public enum Palette: String, SettingsEnum, CaseIterable, Identifiable {
             return "Quantized color"
         case .cga:
             return "CGA"
+        case .apple2:
+            return "Apple ]["
+        case .gameBoy:
+            return "Game Boy"
         case .custom:
             return "Custom"
         }
@@ -254,6 +312,31 @@ public enum Palette: String, SettingsEnum, CaseIterable, Identifiable {
                 return "Mode 5 | High"
             case .textMode:
                 return "Text mode"
+            }
+        }
+        
+        public var id: RawValue { self.rawValue }
+    }
+    
+    public enum Apple2Mode: String, SettingsEnum, CaseIterable, Identifiable {
+        case loRes
+        case hiRes
+        
+        public var title: String {
+            switch self {
+            case .loRes:
+                return "Lo-Res"
+            case .hiRes:
+                return "Hi-Res"
+            }
+        }
+        
+        fileprivate func palette(fromPalettes palettes: Palettes) -> BytePalette {
+            switch self {
+            case .loRes:
+                return palettes.apple2LoRes()
+            case .hiRes:
+                return palettes.apple2HiRes()
             }
         }
         

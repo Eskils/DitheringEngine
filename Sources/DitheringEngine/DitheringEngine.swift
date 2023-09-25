@@ -229,7 +229,7 @@ extension DitheringEngine {
                 let threshold = thresholdMap.thresholdAt(x: x % thresholdMap.num, y: y % thresholdMap.num) - normalizationOffset
                 
                 let newColor = 0.5 * (colorIn + SIMD3(repeating:  threshold))
-                let clampedNewColor = newColor.rounded(.toNearestOrAwayFromZero)//clamp(newColor, min: .zero, max: max)
+                let clampedNewColor = newColor.rounded(.toNearestOrAwayFromZero)
                 let color = palette.pickColor(basedOn: clampedNewColor)
                 
                 resultImageDescription.setColorAt(index: i, color: color)
