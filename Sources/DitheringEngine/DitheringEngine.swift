@@ -132,7 +132,7 @@ extension DitheringEngine {
         }
     }
     
-    private func dither_FloydSteinberg(palette: BytePalette, matrix: [Int], direction: FloydSteinbergDitheringDirection) {
+    private func dither_FloydSteinberg(palette: BytePalette, matrix: [Int], customization: FloydSteinbergDitheringCustomization) {
         guard
             let floatingImageDescription,
             let resultImageDescription
@@ -145,14 +145,14 @@ extension DitheringEngine {
         let max_f = Float(UInt8.max)
         let max = SIMD3(x: max_f, y: max_f, z: max_f)
         
-        let isYDirection = direction.isYDirection
+        let isYDirection = customization.isYDirection
         let width = imageDescription.width
         let height = imageDescription.height
-        let offsets = direction.offsetsWith(matrix: matrix, andWidth: imageDescription.width)
+        let offsets = customization.offsetsWith(matrix: matrix, andWidth: imageDescription.width)
         
         for y in 0..<(isYDirection ? width : height) {
             for x in 0..<(isYDirection ? height : width) {
-                let i = direction.index(forX: x, y: y, width: width, andHeight: height)
+                let i = customization.index(forX: x, y: y, width: width, andHeight: height)
                 
                 let colorIn = imageDescription.getColorAt(index: i)
                 let color = palette.pickColor(basedOn: colorIn)
@@ -176,6 +176,36 @@ extension DitheringEngine {
         }
         
         imageDescription.release()
+    }
+    
+    private func dither_FloydSteinberg(palette: BytePalette, matrix: [Int], direction: FloydSteinbergDitheringDirection) {
+        dither_FloydSteinberg(
+            palette: palette,
+            matrix: matrix,
+            customization: direction
+        )
+    }
+    
+    private func dither_Atkinson(palette: BytePalette) {
+        let matrix = [Int]()
+        let customization = FloydSteinbergAtkinsonDitheringDescription()
+        
+        dither_FloydSteinberg(
+            palette: palette,
+            matrix: matrix,
+            customization: customization
+        )
+    }
+    
+    private func dither_JarvisJudiceNinke(palette: BytePalette) {
+        let matrix = [Int]()
+        let customization = FloydSteinbergJarvisJudiceNinkeDitheringDescription()
+        
+        dither_FloydSteinberg(
+            palette: palette,
+            matrix: matrix,
+            customization: customization
+        )
     }
     
     private func dither_Bayer(palette: BytePalette) {
@@ -220,6 +250,8 @@ extension DitheringEngine {
         case none,
              threshold,
              floydSteinberg,
+             atkinson,
+             jarvisJudiceNinke,
              bayer
         
         fileprivate func run(withEngine engine: DitheringEngine, lut: BytePalette, settings: PaletteSettingsConfiguration) {
@@ -233,6 +265,10 @@ extension DitheringEngine {
                 let matrix = settings.matrix.value
                 let direction = settings.direction.value
                 engine.dither_FloydSteinberg(palette: lut, matrix: matrix, direction: direction)
+            case .atkinson:
+                engine.dither_Atkinson(palette: lut)
+            case .jarvisJudiceNinke:
+                engine.dither_JarvisJudiceNinke(palette: lut)
             case .bayer:
                 engine.dither_Bayer(palette: lut)
             }
@@ -240,10 +276,12 @@ extension DitheringEngine {
         
         public var title: String {
             switch self {
-            case .none: return "None"
-            case .threshold: return "Threshold"
-            case .floydSteinberg: return "Floyd-Steinberg"
-            case .bayer: return "Bayer"
+            case .none:                 return "None"
+            case .threshold:            return "Threshold"
+            case .floydSteinberg:       return "Floyd-Steinberg"
+            case .atkinson:             return "Atkinson"
+            case .jarvisJudiceNinke:    return "Jarvis-Judice-Ninke"
+            case .bayer:                return "Bayer"
             }
         }
         
@@ -255,6 +293,10 @@ extension DitheringEngine {
                 return EmptyPaletteSettingsConfiguration()
             case .floydSteinberg:
                 return FloydSteinbergSettingsConfiguration()
+            case .atkinson:
+                return EmptyPaletteSettingsConfiguration()
+            case .jarvisJudiceNinke:
+                return EmptyPaletteSettingsConfiguration()
             case .bayer:
                 return EmptyPaletteSettingsConfiguration()
             }
