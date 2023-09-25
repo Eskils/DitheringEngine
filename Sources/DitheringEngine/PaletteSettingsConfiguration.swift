@@ -262,6 +262,25 @@ public class FloydSteinbergSettingsConfiguration: PaletteSettingsConfiguration, 
     
 }
 
+public class BayerSettingsConfiguration: PaletteSettingsConfiguration {
+    
+    /// Size of threshold map nxn. Value between 1 and 8. Default value is 4.
+    public let thresholdMapSize: CurrentValueSubject<Int, Never>
+    
+    public init(thresholdMapSize: Int = 4) {
+        self.thresholdMapSize = CurrentValueSubject(4)
+    }
+    
+    public func didChange(storingIn cancellables: inout Set<AnyCancellable>) -> AnyPublisher<Any, Never> {
+        
+        return thresholdMapSize
+            .map { $0 as Any }
+            .eraseToAnyPublisher()
+    }
+    
+    
+}
+
 //FIXME: This might not work…
 func pipingCVSToAny<T>(_ cvs: CurrentValueSubject<T, Never>, storingIn cancellables: inout Set<AnyCancellable>) -> CurrentValueSubject<Any, Never> {
     

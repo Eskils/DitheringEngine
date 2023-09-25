@@ -72,11 +72,10 @@ func thresholdMap4x4<T: Numeric & ImageColor>() -> ThresholdMap<T> {
                                   240, 120, 210,  90 ])
 }
 
-func generateThresholdMap(n: Int) -> FloatingThresholdMap {
-    if n <= 1 { return thresholdMap2x2() }
+func generateThresholdMap(n num: Int) -> FloatingThresholdMap {
+    if num <= 1 { return thresholdMap2x2() }
     
-    let thresholdMap: ThresholdMap<Float> = generateThresholdMap(n: n - 1)
-    let num = Int(pow(2, Float(n)))
+    let thresholdMap: ThresholdMap<Float> = generateThresholdMap(n: num - 1)
     let count = num * num
     
     let buffer = UnsafeMutablePointer<Float>.allocate(capacity: count)

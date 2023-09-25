@@ -208,7 +208,7 @@ extension DitheringEngine {
         )
     }
     
-    private func dither_Bayer(palette: BytePalette) {
+    private func dither_Bayer(palette: BytePalette, thresholdMapSize: Int) {
         guard
             let imageDescription = floatingImageDescription,
             let resultImageDescription
@@ -216,16 +216,9 @@ extension DitheringEngine {
             return
         }
         
-        let thresholdMap: ThresholdMap<Float> = generateThresholdMap(n: 4)
-//        let normalizationOffset: Float = 0.5//Float(thresholdMap.count / 2)
-        let count_f: Float = 1//Float(thresholdMap.count)
-        
-//        let uniqueColors: Float = Float(palette.uniqueColors)
-//        let N = log2(uniqueColors) / 3
-//        let r: Float = 255 / N
-        
-//        let max_f = Float(UInt8.max)
-//        let max = SIMD3(x: max_f, y: max_f, z: max_f)
+        let thresholdMapSize = clamp(thresholdMapSize, min: 1, max: 8)
+        let thresholdMap: ThresholdMap<Float> = generateThresholdMap(n: thresholdMapSize)
+        let normalizationOffset: Float = Float(thresholdMap.count) / 2
         
         for y in 0..<imageDescription.height {
             for x in 0..<imageDescription.width {
@@ -233,10 +226,10 @@ extension DitheringEngine {
                 
                 let colorIn = imageDescription.getColorAt(index: i)
                 
-                let threshold = (thresholdMap.thresholdAt(x: x % thresholdMap.num, y: y % thresholdMap.num) / count_f) //- normalizationOffset
+                let threshold = thresholdMap.thresholdAt(x: x % thresholdMap.num, y: y % thresholdMap.num) - normalizationOffset
                 
                 let newColor = 0.5 * (colorIn + SIMD3(repeating:  threshold))
-                let clampedNewColor = floor(newColor)//clamp(newColor, min: .zero, max: max)
+                let clampedNewColor = newColor.rounded(.toNearestOrAwayFromZero)//clamp(newColor, min: .zero, max: max)
                 let color = palette.pickColor(basedOn: clampedNewColor)
                 
                 resultImageDescription.setColorAt(index: i, color: color)
@@ -270,7 +263,9 @@ extension DitheringEngine {
             case .jarvisJudiceNinke:
                 engine.dither_JarvisJudiceNinke(palette: lut)
             case .bayer:
-                engine.dither_Bayer(palette: lut)
+                let settings = (settings as? BayerSettingsConfiguration) ?? .init()
+                let thresholdMapSize = settings.thresholdMapSize.value
+                engine.dither_Bayer(palette: lut, thresholdMapSize: thresholdMapSize)
             }
         }
         
@@ -298,7 +293,7 @@ extension DitheringEngine {
             case .jarvisJudiceNinke:
                 return EmptyPaletteSettingsConfiguration()
             case .bayer:
-                return EmptyPaletteSettingsConfiguration()
+                return BayerSettingsConfiguration()
             }
         }
         
