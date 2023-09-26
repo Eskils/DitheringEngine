@@ -31,7 +31,42 @@ extension SettingView {
     }
 }
 
-struct NumberSettingViewDescription<Number: BinaryFloatingPoint>: SettingView, ViewConstructable, Identifiable where Number.Stride: BinaryFloatingPoint {
+protocol RepresentableAsFloatingPoint {
+    init(floatingPoint: Double)
+    func toDouble() -> Double
+}
+
+extension Double: RepresentableAsFloatingPoint {
+    func toDouble() -> Double {
+        return self
+    }
+    
+    init(floatingPoint: Double) {
+        self = floatingPoint
+    }
+}
+
+extension Int: RepresentableAsFloatingPoint {
+    func toDouble() -> Double {
+        return Double(self)
+    }
+    
+    init(floatingPoint: Double) {
+        self = Int(floatingPoint)
+    }
+}
+
+extension Float: RepresentableAsFloatingPoint {
+    func toDouble() -> Double {
+        return Double(self)
+    }
+    
+    init(floatingPoint: Double) {
+        self = Float(floatingPoint)
+    }
+}
+
+struct NumberSettingViewDescription<Number: RepresentableAsFloatingPoint>: SettingView, ViewConstructable, Identifiable {
     let id = UUID().uuidString
     
     let subject: CurrentValueSubject<Number, Never>
@@ -45,21 +80,21 @@ struct NumberSettingViewDescription<Number: BinaryFloatingPoint>: SettingView, V
     }
 }
 
-struct NumberSettingView<Number: BinaryFloatingPoint>: View where Number.Stride: BinaryFloatingPoint {
+struct NumberSettingView<Number: RepresentableAsFloatingPoint>: View {
     
     let description: NumberSettingViewDescription<Number>
     
     @State
-    var state: Number
+    var state: Double
     
     init(description: NumberSettingViewDescription<Number>) {
         self.description = description
-        self._state = State(wrappedValue: description.subject.value)
+        self._state = State(wrappedValue: description.subject.value.toDouble())
     }
     
     var body: some View {
         let bindedValue = binding(_state) { val in
-            self.description.subject.send(val)
+            self.description.subject.send(Number.init(floatingPoint: val))
         }
         
         VStack {
@@ -67,7 +102,7 @@ struct NumberSettingView<Number: BinaryFloatingPoint>: View where Number.Stride:
                 .frame(maxWidth: .infinity)
             
             HStack {
-                Slider(value: bindedValue, in: description.min...description.max) {
+                Slider(value: bindedValue, in: description.min.toDouble()...description.max.toDouble()) {
                     Text(description.title)
                 }
                 Text(Int(state).formatted())

@@ -131,6 +131,24 @@ class CustomPaletteSettingsConfigurationWithView: PaletteSettingsConfigurationWi
             
             let (didChange, cancellables) = makeDidChangePublisher(from: views)
             return CustomPaletteSettingsConfigurationWithView(settingsConfiguration: settingsConfiguration, views: views, didChangePublisher: didChange, cancellables: cancellables)
+        case is BayerSettingsConfiguration:
+            let settingsConfiguration = paletteSettingsConfiguration as! BayerSettingsConfiguration
+            
+            let views = [
+                NumberSettingViewDescription(subject: settingsConfiguration.thresholdMapSize, title: "Threshold Map Size", min: 0, max: 8)
+            ]
+            
+            let (didChange, cancellables) = makeDidChangePublisher(from: views)
+            return CustomPaletteSettingsConfigurationWithView(settingsConfiguration: settingsConfiguration, views: views, didChangePublisher: didChange, cancellables: cancellables)
+        case is Apple2SettingsConfiguration:
+            let settingsConfiguration = paletteSettingsConfiguration as! Apple2SettingsConfiguration
+            
+            let views = [
+                EnumSettingViewDescription(subject: settingsConfiguration.mode, title: "Graphics Mode", options: Apple2SettingsConfiguration.Enum.allCases)
+            ]
+            
+            let (didChange, cancellables) = makeDidChangePublisher(from: views)
+            return CustomPaletteSettingsConfigurationWithView(settingsConfiguration: settingsConfiguration, views: views, didChangePublisher: didChange, cancellables: cancellables)
         case is CustomPaletteSettingsConfiguration:
             let settingsConfiguration = paletteSettingsConfiguration as! CustomPaletteSettingsConfiguration
             
