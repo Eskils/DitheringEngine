@@ -17,13 +17,17 @@ The engine works on CGImages.
 Supported dithering methods are: 
   - Threshold
   - Floyd Steinberg
+  - Atkinson
+  - Jarvis-Judice-Ninke
   - Bayer (Ordered dithering)
 
 Supported out of the box palettes are:
   - Black & White
   - Grayscale
-  - Quantized Color (can set number of bits for each color)
-  - CGA (with different modes)
+  - Quantized Color
+  - Apple ][
+  - Game Boy
+  - CGA 
 
 Example usage: 
 ```swift
@@ -97,6 +101,48 @@ let cgImage = try ditheringEngine.dither(
 )
 ```
 
+#### Atkinson
+
+Atkinson dithering is a variant of Floyd-Steinberg dithering, and works by spreading error from reducing the color of a pixel to the neighbouring pixels. Atkinson spreads over a larger area, but does not distribute the full error—making colors matching the palette have less noise.
+
+![Atkinson dithering with default settings. CGA Text Mode](Documentation/Resources/Atkinson.png)
+
+**Token:** `.atkinson`  
+**Settings:** `EmptyPaletteSettingsConfiguration`
+
+Example: 
+```swift
+let ditheringEngine = DitheringEngine()
+try ditheringEngine.set(image: inputCGImage)
+let cgImage = try ditheringEngine.dither(
+    usingMethod: .atkinson,
+    andPalette: .cga,
+    withDitherMethodSettings: EmptyPaletteSettingsConfiguration(),
+    withPaletteSettings: CGASettingsConfiguration(mode: .textMode)
+)
+```
+
+#### Jarvis-Judice-Ninke
+
+Jarvis-Judice-Ninke dithering is a variant of Floyd-Steinberg dithering, and works by spreading error from reducing the color of a pixel to the neighbouring pixels. This method spreads distributes the error over a larger area and therefore leaves a smoother look to your image.
+
+![Jarvis-Judice-Ninke dithering with default settings. CGA Text Mode](Documentation/Resources/JarvisJudiceNinke.png)
+
+**Token:** `.jarvisJudiceNinke`  
+**Settings:** `EmptyPaletteSettingsConfiguration`
+
+Example: 
+```swift
+let ditheringEngine = DitheringEngine()
+try ditheringEngine.set(image: inputCGImage)
+let cgImage = try ditheringEngine.dither(
+    usingMethod: .jarvisJudiceNinke,
+    andPalette: .cga,
+    withDitherMethodSettings: EmptyPaletteSettingsConfiguration(),
+    withPaletteSettings: CGASettingsConfiguration(mode: .textMode)
+)
+```
+
 #### Bayer
 
 Bayer dithering is a type of ordered dithering which adds a precalculated threshold to every pixel, baking in a special pattern.
@@ -104,7 +150,11 @@ Bayer dithering is a type of ordered dithering which adds a precalculated thresh
 ![Bayer dithering with default settings. CGA Mode 5 | High palette](Documentation/Resources/BayerAlg.png)
 
 **Token:** `.bayer`  
-**Settings:** `EmptyPaletteSettingsConfiguration`
+**Settings:** `BayerSettingsConfiguration`
+
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| thresholdMapSize | Int | `4` | Specifies the size of the square threshold matrix. Default is 4x4. |
 
 Example: 
 ```swift
@@ -113,7 +163,7 @@ try ditheringEngine.set(image: inputCGImage)
 let cgImage = try ditheringEngine.dither(
     usingMethod: .bayer,
     andPalette: .cga,
-    withDitherMethodSettings: EmptyPaletteSettingsConfiguration(),
+    withDitherMethodSettings: BayerSettingsConfiguration(),
     withPaletteSettings: CGASettingsConfiguration(mode: .mode5High)
 )
 ```
@@ -150,7 +200,11 @@ A palette with all shades of gray.
 ![Floyd-Steinberg dithering with the grayscale palette](Documentation/Resources/FSGray.png)
 
 **Token:** `.grayscale`  
-**Settings:** `EmptyPaletteSettingsConfiguration`
+**Settings:** `QuantizedColorSettingsConfiguration`
+
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| bits | Int | 0 | Specifies the number of bits to quantize to. The number of bits can be between 0 and 8. The number of shades of gray is given by 2^n where n is the number of bits. |
 
 Example: 
 ```swift
@@ -222,6 +276,60 @@ let cgImage = try ditheringEngine.dither(
     andPalette: .quantizedColor,
     withDitherMethodSettings: EmptyPaletteSettingsConfiguration(),
     withPaletteSettings: CGASettingsConfiguration(mode: .palette1High)
+)
+```
+
+#### Apple ][
+
+The Apple II was one of the first personal computers with color. Technical challenges related to reducing cost enabled two modes for graphics—a high resolution mode with six colors, and a low resolution mode with 16 colors.
+
+![Atkinson dithering with the Apple II palette. Here in HiRes graphics mode.](Documentation/Resources/AtkApple2HiRes.png)
+
+**Token:** `.apple2`  
+**Settings:** `Apple2SettingsConfiguration`
+
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| mode | Apple2Mode | `.hiRes` | Specifies the graphics mode to use. Each graphics mode has a unique set of colors. |
+
+**`Apple2Mode`**:
+| Name | Num. Colors | Image |
+|------|------|---------|
+| `.hiRes` | 6 colors | <img alt="Hi-Res" src="Documentation/Resources/AtkApple2HiRes.png" height="200" width="auto"> |
+| `.loRes` | 16 colors | <img alt="Lo-Res" src="Documentation/Resources/AtkApple2LoRes.png" height="200" width="auto"> |
+
+> **Note:** The 16 colors of the Apple2 Lo-Res palette are different from CGA’s text mode palette.
+
+Example: 
+```swift
+let ditheringEngine = DitheringEngine()
+try ditheringEngine.set(image: inputCGImage)
+let cgImage = try ditheringEngine.dither(
+    usingMethod: .atkinson,
+    andPalette: .apple2,
+    withDitherMethodSettings: EmptyPaletteSettingsConfiguration(),
+    withPaletteSettings: Apple2SettingsConfiguration(mode: .hiRes)
+)
+```
+
+#### Game Boy
+
+Oldschool four color green-shaded monochrome display.
+
+![Atkinson dithering with the Game Boy palette.](Documentation/Resources/AtkGameBoy.png)
+
+**Token:** `.gameBoy`  
+**Settings:** `EmptyPaletteSettingsConfiguration`
+
+Example: 
+```swift
+let ditheringEngine = DitheringEngine()
+try ditheringEngine.set(image: inputCGImage)
+let cgImage = try ditheringEngine.dither(
+    usingMethod: .atkinson,
+    andPalette: .gameBoy,
+    withDitherMethodSettings: EmptyPaletteSettingsConfiguration(),
+    withPaletteSettings: EmptyPaletteSettingsConfiguration()
 )
 ```
 
