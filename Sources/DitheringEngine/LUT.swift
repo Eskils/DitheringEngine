@@ -126,7 +126,6 @@ public struct LUTCollection<Color: ImageColor> {
             // Find distance between the error and the base color. We want to minimize this
 //            let distance = simd_fast_distance(lutColor_f, color)
             let redmean = (lutColor_f.x + color.x) / 2
-            let delta = lutColor_f - color
             let coeffs = redmean < 128 ? SIMD3<Float>(x: 2, y: 4, z: 3) : SIMD3<Float>(x: 3, y: 4, z: 2)
             let distance = simd_distance_squared(coeffs * lutColor_f, coeffs * color)
             

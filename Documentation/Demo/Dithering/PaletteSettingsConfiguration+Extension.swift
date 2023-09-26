@@ -63,6 +63,10 @@ class PaletteSelectionSettingsConfigurationWithView: PaletteSettingsConfiguratio
             EnumSettingViewDescription(subject: settingsConfiguration.palette, title: "", options: Enum.allCases)
         ]
     }
+    
+    func didChange(storingIn cancellables: inout Set<AnyCancellable>) -> AnyPublisher<Any, Never> {
+        return didChangePublisher
+    }
 }
 
 class EmptyPaletteSettingsConfigurationWithView: PaletteSettingsConfigurationWithView {
