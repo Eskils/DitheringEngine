@@ -216,9 +216,10 @@ extension DitheringEngine {
             return
         }
         
-        let thresholdMapSize = clamp(thresholdMapSize, min: 1, max: 8)
+        let thresholdMapSize = clamp(thresholdMapSize, min: 2, max: 256)
         let thresholdMap: ThresholdMap<Float> = generateThresholdMap(n: thresholdMapSize)
         let normalizationOffset: Float = Float(thresholdMap.count) / 2
+        let r: Float = 8 / Float(thresholdMapSize)
         
         for y in 0..<imageDescription.height {
             for x in 0..<imageDescription.width {
@@ -228,7 +229,7 @@ extension DitheringEngine {
                 
                 let threshold = thresholdMap.thresholdAt(x: x % thresholdMap.num, y: y % thresholdMap.num) - normalizationOffset
                 
-                let newColor = 0.5 * (colorIn + SIMD3(repeating:  threshold))
+                let newColor = (colorIn + r * SIMD3(repeating:  threshold))
                 let clampedNewColor = newColor.rounded(.toNearestOrAwayFromZero)
                 let color = palette.pickColor(basedOn: clampedNewColor)
                 
@@ -264,7 +265,7 @@ extension DitheringEngine {
                 engine.dither_JarvisJudiceNinke(palette: lut)
             case .bayer:
                 let settings = (settings as? BayerSettingsConfiguration) ?? .init()
-                let thresholdMapSize = settings.thresholdMapSize.value
+                let thresholdMapSize = settings.size
                 engine.dither_Bayer(palette: lut, thresholdMapSize: thresholdMapSize)
             }
         }

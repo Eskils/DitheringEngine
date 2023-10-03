@@ -72,19 +72,26 @@ func thresholdMap4x4<T: Numeric & ImageColor>() -> ThresholdMap<T> {
                                   240, 120, 210,  90 ])
 }
 
+/// Generates threshold map for Bayer dithering. N must be a multiple of 2.
 func generateThresholdMap(n num: Int) -> FloatingThresholdMap {
-    if num <= 1 { return thresholdMap2x2() }
+    if num <= 2 { return thresholdMap2x2() }
     
-    let thresholdMap: ThresholdMap<Float> = generateThresholdMap(n: num - 1)
+    let previousNum = num >> 1
+    let thresholdMap: ThresholdMap<Float> = generateThresholdMap(n: previousNum)
     let count = num * num
     
     let buffer = UnsafeMutablePointer<Float>.allocate(capacity: count)
     for y in 0..<num {
         for x in 0..<num {
-            let term1 = thresholdMap.thresholdAt(x: x / 2, y: y / 2)
-            let term2 = 4 * thresholdMap.thresholdAt(x: x % 2, y: y % 2)
+            let term = Int(thresholdMap.thresholdAt(x: x % previousNum, y: y % previousNum))
+            
+            let quadrantX = (x / previousNum)
+            let quadrantY = (y / previousNum)
+            let offset = 2 * quadrantX + (3 - 4 * quadrantX) * quadrantY
+            
             let i = y * num + x
-            buffer[i] = Float(term1 + term2)
+            
+            buffer[i] = Float(4 * term + offset + 1)
         }
     }
     
