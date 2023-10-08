@@ -77,8 +77,11 @@ public struct LUTPalette<Color: ImageColor> {
                 lut.getEntryAt(index: $0).toUInt8()
             }
             if lut.isColor {
-                
-                let count = min(16, colors.count)
+                #if DEBUG
+                let count = min(4, colors.count)
+                #else
+                let count = min(8, colors.count)
+                #endif
                 let stride = colors.count / count
                 return (0..<count).flatMap { r in
                     (0..<count).flatMap { g in

@@ -60,7 +60,6 @@ public class LUT<Color: ImageColor> {
         }
         let simdColors: [SIMD3<Color>]
         if self.isColor {
-            
             let count = min(16, colors.count)
             let stride = colors.count / count
             simdColors = (0..<count).flatMap { r in
