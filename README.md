@@ -20,6 +20,8 @@ Supported dithering methods are:
   - Atkinson
   - Jarvis-Judice-Ninke
   - Bayer (Ordered dithering)
+  - White noise (Ordered dithering)
+  - Noise (Ordered dithering)
 
 Supported out of the box palettes are:
   - Black & White
@@ -165,6 +167,59 @@ let cgImage = try ditheringEngine.dither(
     andPalette: .cga,
     withDitherMethodSettings: BayerSettingsConfiguration(),
     withPaletteSettings: CGASettingsConfiguration(mode: .mode5High)
+)
+```
+
+#### White noise
+
+White noise dithering adds random noise to the image when converting to the selected palette, leaving a grained and messy look to your image.
+
+![White noise dithering with default settings. CGA Mode 5 | High palette](Documentation/Resources/WhiteNoiseApple2.png)
+
+**Token:** `.whiteNoise`  
+**Settings:** `BayerSettingsConfiguration`
+
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| thresholdMapSize | Int | `7` | Specifies the size of the square threshold matrix. Default is 128x128. |
+
+Example: 
+```swift
+let ditheringEngine = DitheringEngine()
+try ditheringEngine.set(image: inputCGImage)
+let cgImage = try ditheringEngine.dither(
+    usingMethod: .whiteNoise,
+    andPalette: .apple2,
+    withDitherMethodSettings: BayerSettingsConfiguration(),
+    withPaletteSettings: Apple2SettingsConfiguration(mode: .hiRes)
+)
+```
+
+#### Noise
+
+You can provide your own noise texture to sample when performing ordered dithering.
+
+![Bayer dithering with default settings. CGA Mode 5 | High palette](Documentation/Resources/BlueNoiseGameBoy.png)
+
+> This image is dithered using a blue noise pattern — leaving a grained, organic look.
+
+**Token:** `.noise`  
+**Settings:** `NoiseDitheringSettingsConfiguration`
+
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| noisePattern | CGImage? | `nil` | Specifies the noise pattern to use for ordered dithering. |
+
+Example: 
+```swift
+let noisePatternImage: CGImage = ...
+let ditheringEngine = DitheringEngine()
+try ditheringEngine.set(image: inputCGImage)
+let cgImage = try ditheringEngine.dither(
+    usingMethod: .noise,
+    andPalette: .gameBoy,
+    withDitherMethodSettings: NoiseDitheringSettingsConfiguration(noisePattern: noisePatternImage),
+    withPaletteSettings: EmptySettingsConfiguration()
 )
 ```
 
