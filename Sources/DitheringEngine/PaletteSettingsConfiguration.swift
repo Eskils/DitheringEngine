@@ -278,12 +278,17 @@ public class FloydSteinbergSettingsConfiguration: PaletteSettingsConfiguration, 
     
 }
 
-public class BayerSettingsConfiguration: PaletteSettingsConfiguration {
+public protocol OrderedDitheringThresholdConfiguration: PaletteSettingsConfiguration {
+    var thresholdMapSize: CurrentValueSubject<Int, Never> { get }
+    var size: Int { get }
+}
+
+public class BayerSettingsConfiguration: PaletteSettingsConfiguration, OrderedDitheringThresholdConfiguration {
     
     /// Exponent for size of threshold map m=2^n. mxm. Value between 1 and 6. Default value is 5.
     public let thresholdMapSize: CurrentValueSubject<Int, Never>
     
-    var size: Int {
+    public var size: Int {
         let exponent = thresholdMapSize.value
         return 2 << (exponent - 1)
     }
@@ -301,12 +306,12 @@ public class BayerSettingsConfiguration: PaletteSettingsConfiguration {
     
 }
 
-public class WhiteNoiseSettingsConfiguration: PaletteSettingsConfiguration {
+public class WhiteNoiseSettingsConfiguration: PaletteSettingsConfiguration, OrderedDitheringThresholdConfiguration {
     
     /// Exponent for size of threshold map m=2^n. mxm. Value between 7 and 10. Default value is 7.
     public let thresholdMapSize: CurrentValueSubject<Int, Never>
     
-    var size: Int {
+    public var size: Int {
         let exponent = thresholdMapSize.value
         return 2 << (exponent - 1)
     }
