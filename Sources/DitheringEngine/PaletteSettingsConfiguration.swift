@@ -302,6 +302,24 @@ public class BayerSettingsConfiguration: PaletteSettingsConfiguration {
     
 }
 
+public class NoiseDitheringSettingsConfiguration: PaletteSettingsConfiguration {
+    
+    public let noisePattern: CurrentValueSubject<CGImage?, Never>
+    
+    public init(noisePattern: CGImage? = nil) {
+        self.noisePattern = CurrentValueSubject(noisePattern)
+    }
+    
+    public func didChange(storingIn cancellables: inout Set<AnyCancellable>) -> AnyPublisher<Any, Never> {
+        
+        return noisePattern
+            .map { $0 as Any }
+            .eraseToAnyPublisher()
+    }
+    
+    
+}
+
 //FIXME: This might not work…
 func pipingCVSToAny<T>(_ cvs: CurrentValueSubject<T, Never>, storingIn cancellables: inout Set<AnyCancellable>) -> CurrentValueSubject<Any, Never> {
     

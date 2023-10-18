@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 import Combine
 import DitheringEngine
 
@@ -136,6 +137,14 @@ class CustomPaletteSettingsConfigurationWithView: PaletteSettingsConfigurationWi
             
             let views = [
                 NumberSettingViewDescription(subject: settingsConfiguration.thresholdMapSize, title: "Threshold Map Size", min: 0, max: 8)
+            ]
+            
+            let (didChange, cancellables) = makeDidChangePublisher(from: views)
+            return CustomPaletteSettingsConfigurationWithView(settingsConfiguration: settingsConfiguration, views: views, didChangePublisher: didChange, cancellables: cancellables)
+        case is NoiseDitheringSettingsConfiguration:
+            let settingsConfiguration = paletteSettingsConfiguration as! NoiseDitheringSettingsConfiguration
+            let views: [any SettingView] = [
+                CustomImageSettingViewDescription(image: settingsConfiguration.noisePattern, title: "Noise Pattern")
             ]
             
             let (didChange, cancellables) = makeDidChangePublisher(from: views)

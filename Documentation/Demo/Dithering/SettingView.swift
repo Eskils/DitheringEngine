@@ -9,6 +9,7 @@ import SwiftUI
 import Combine
 import DitheringEngine
 import SafeSanFrancisco
+import UniformTypeIdentifiers
 
 protocol SettingView: Identifiable, ViewConstructable {
     associatedtype T
@@ -324,4 +325,90 @@ struct CustomPaletteSettingView: View {
         description.subject.send(palette)
     }
     
+}
+
+struct CustomImageSettingViewDescription: SettingView, ViewConstructable, Identifiable {
+    let id = UUID().uuidString
+    
+    let subject: CurrentValueSubject<CGImage?, Never>
+    let title: String
+    
+    init(image: CurrentValueSubject<CGImage?, Never>, title: String) {
+        self.title = title
+        self.subject = image
+    }
+    
+    func makeView() -> AnyView {
+        AnyView(CustomImageSettingView(description: self))
+    }
+}
+
+struct CustomImageSettingView: View {
+    
+    let description: CustomImageSettingViewDescription
+    
+    @State
+    private var patternImage: UIImage?
+    
+    @State
+    private var showPhotoPicker = false
+    
+    @State
+    private var showDocumentPicker = false
+    
+    @State
+    private var showPickPhotoActionSheet = false
+    
+    var body: some View {
+        HStack {
+            Image(uiImage: patternImage ?? UIImage())
+                .resizable()
+                .frame(width: 100, height: 100)
+                .background(Color.gray)
+                .border(Color.black)
+            
+            Button {
+                showPickPhotoActionSheet = true
+            } label: {
+                Text("Choose image")
+            }
+
+        }
+        .sheet(isPresented: $showPhotoPicker, content: {
+            ImagePicker(image: $patternImage)
+        })
+        .fileImporter(isPresented: $showDocumentPicker, allowedContentTypes: [.image], onCompletion: { result in
+            switch result {
+            case .success(let url):
+                if let data = try? Data(contentsOf: url),
+                   let image = UIImage(data: data) {
+                    self.patternImage = image
+                }
+            case .failure(let error):
+                print(error)
+            }
+        })
+        .confirmationDialog("Choose image", isPresented: $showPickPhotoActionSheet) {
+            Button("Choose from photos") {
+                showPhotoPicker = true
+            }
+            
+            Button("Choose from files") {
+                showDocumentPicker = true
+            }
+        }
+        .onChange(of: patternImage, perform: { patternImage in
+            guard 
+                let patternImage,
+                let cgImage = patternImage.cgImage
+            else {
+                return
+            }
+            
+            self.description.subject.send(cgImage)
+        })
+        .onAppear(perform: {
+            self.patternImage = UIImage(named: "bluenoise")
+        })
+    }
 }

@@ -73,11 +73,11 @@ func thresholdMap4x4<T: Numeric & ImageColor>() -> ThresholdMap<T> {
 }
 
 /// Generates threshold map for Bayer dithering. N must be a multiple of 2.
-func generateThresholdMap(n num: Int) -> FloatingThresholdMap {
+func generateBayerThresholdMap(n num: Int) -> FloatingThresholdMap {
     if num <= 2 { return thresholdMap2x2() }
     
     let previousNum = num >> 1
-    let thresholdMap: ThresholdMap<Float> = generateThresholdMap(n: previousNum)
+    let thresholdMap: ThresholdMap<Float> = generateBayerThresholdMap(n: previousNum)
     let count = num * num
     
     let buffer = UnsafeMutablePointer<Float>.allocate(capacity: count)
@@ -97,4 +97,37 @@ func generateThresholdMap(n num: Int) -> FloatingThresholdMap {
     
     thresholdMap.release()
     return FloatingThresholdMap(num: num, buffer: buffer)
+}
+
+/// Generates white noise threshold map.
+func generateWhiteNoiseThresholdMap(n num: Int, max: Float, seed: Int) -> FloatingThresholdMap {
+    let buffer = UnsafeMutablePointer<Float>.allocate(capacity: num * num)
+    var numberGenerator = WhiteNoiseGenerator(seed: seed)
+    for i in 0..<num * num {
+        buffer[i] = Float.random(in: 0...max, using: &numberGenerator)
+    }
+    
+    return FloatingThresholdMap(num: num, buffer: buffer)
+}
+
+/// Generates threshold map from image.
+func generateImageThresholdMap(image: ImageDescription) -> FloatingThresholdMap {
+    let buffer = UnsafeMutablePointer<Float>.allocate(capacity: image.width * image.width)
+    
+    for i in 0..<image.width*image.width {
+        let value = image.getColorAt(index: i).x
+        buffer[i] = Float(value)
+    }
+    
+    return FloatingThresholdMap(num: image.width, buffer: buffer)
+}
+
+struct WhiteNoiseGenerator: RandomNumberGenerator {
+    init(seed: Int) {
+        srand48(seed)
+    }
+        
+    func next() -> UInt64 {
+        return UInt64(drand48() * 0x1.0p64) ^ UInt64(drand48() * 0x1.0p16)
+    }
 }

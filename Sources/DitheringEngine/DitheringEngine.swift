@@ -1,3 +1,4 @@
+import Foundation
 import CoreGraphics
 import simd
 
@@ -12,6 +13,8 @@ public class DitheringEngine {
     private var resultImageDescription: ImageDescription?
     
     public let palettes = Palettes()
+    
+    private let seed = Int(arc4random())
     
     public init() {}
     
@@ -208,18 +211,13 @@ extension DitheringEngine {
         )
     }
     
-    private func dither_Bayer(palette: BytePalette, thresholdMapSize: Int) {
+    private func dither_Ordered(palette: BytePalette, thresholdMap: FloatingThresholdMap, normalizationOffset: Float, thresholdMultiplier: Float) {
         guard
             let imageDescription = floatingImageDescription,
             let resultImageDescription
         else {
             return
         }
-        
-        let thresholdMapSize = clamp(thresholdMapSize, min: 2, max: 256)
-        let thresholdMap: ThresholdMap<Float> = generateThresholdMap(n: thresholdMapSize)
-        let normalizationOffset: Float = Float(thresholdMap.count) / 2
-        let r: Float = 8 / Float(thresholdMapSize)
         
         for y in 0..<imageDescription.height {
             for x in 0..<imageDescription.width {
@@ -229,13 +227,58 @@ extension DitheringEngine {
                 
                 let threshold = thresholdMap.thresholdAt(x: x % thresholdMap.num, y: y % thresholdMap.num) - normalizationOffset
                 
-                let newColor = (colorIn + r * SIMD3(repeating:  threshold))
+                let newColor = (colorIn + thresholdMultiplier * SIMD3(repeating:  threshold))
                 let clampedNewColor = newColor.rounded(.toNearestOrAwayFromZero)
                 let color = palette.pickColor(basedOn: clampedNewColor)
                 
                 resultImageDescription.setColorAt(index: i, color: color)
             }
         }
+    }
+    
+    private func dither_Bayer(palette: BytePalette, thresholdMapSize: Int) {
+        let thresholdMapSize = clamp(thresholdMapSize, min: 2, max: 256)
+        let thresholdMap = generateBayerThresholdMap(n: thresholdMapSize)
+        let normalizationOffset = Float(thresholdMap.count) / 2
+        let thresholdMultiplier = 8 / Float(thresholdMapSize)
+        
+        dither_Ordered(
+            palette: palette,
+            thresholdMap: thresholdMap,
+            normalizationOffset: normalizationOffset,
+            thresholdMultiplier: thresholdMultiplier
+        )
+        
+        thresholdMap.release()
+    }
+    
+    private func dither_WhiteNoise(palette: BytePalette, thresholdMapSize: Int) {
+        let thresholdMapSize = clamp(thresholdMapSize, min: 2, max: 256)
+        let thresholdMap = generateWhiteNoiseThresholdMap(n: thresholdMapSize, max: 255, seed: seed)
+        let normalizationOffset: Float = 128
+        let thresholdMultiplier: Float = 1.0
+        
+        dither_Ordered(
+            palette: palette,
+            thresholdMap: thresholdMap,
+            normalizationOffset: normalizationOffset,
+            thresholdMultiplier: thresholdMultiplier
+        )
+        
+        thresholdMap.release()
+    }
+    
+    private func dither_Noise(palette: BytePalette, noisePattern: ImageDescription) {
+        let thresholdMap = generateImageThresholdMap(image: noisePattern)
+        let normalizationOffset: Float = 128
+        let thresholdMultiplier: Float = 1
+        
+        dither_Ordered(
+            palette: palette,
+            thresholdMap: thresholdMap,
+            normalizationOffset: normalizationOffset,
+            thresholdMultiplier: thresholdMultiplier
+        )
         
         thresholdMap.release()
     }
@@ -246,7 +289,9 @@ extension DitheringEngine {
              floydSteinberg,
              atkinson,
              jarvisJudiceNinke,
-             bayer
+             bayer,
+             whiteNoise,
+             noise
         
         fileprivate func run(withEngine engine: DitheringEngine, lut: BytePalette, settings: PaletteSettingsConfiguration) {
             switch self {
@@ -267,6 +312,24 @@ extension DitheringEngine {
                 let settings = (settings as? BayerSettingsConfiguration) ?? .init()
                 let thresholdMapSize = settings.size
                 engine.dither_Bayer(palette: lut, thresholdMapSize: thresholdMapSize)
+            case .whiteNoise:
+                let settings = (settings as? BayerSettingsConfiguration) ?? .init()
+                let thresholdMapSize = settings.size
+                engine.dither_WhiteNoise(palette: lut, thresholdMapSize: thresholdMapSize)
+            case .noise:
+                let settings = (settings as? NoiseDitheringSettingsConfiguration) ?? .init()
+                guard let noisePattern = settings.noisePattern.value else {
+                    engine.dither_None(palette: lut)
+                    return
+                }
+                let noisePatternBuffered = ImageDescription(width: noisePattern.width, height: noisePattern.height, components: noisePattern.bytesPerRow / noisePattern.width)
+                if noisePatternBuffered.setBufferFrom(image: noisePattern) {
+                    engine.dither_Noise(palette: lut, noisePattern: noisePatternBuffered)
+                } else {
+                    print("Could not load noise pattern.")
+                    engine.dither_None(palette: lut)
+                }
+                noisePatternBuffered.release()
             }
         }
         
@@ -278,6 +341,8 @@ extension DitheringEngine {
             case .atkinson:             return "Atkinson"
             case .jarvisJudiceNinke:    return "Jarvis-Judice-Ninke"
             case .bayer:                return "Bayer"
+            case .whiteNoise:           return "White Noise"
+            case .noise:                return "Noise"
             }
         }
         
@@ -295,6 +360,10 @@ extension DitheringEngine {
                 return EmptyPaletteSettingsConfiguration()
             case .bayer:
                 return BayerSettingsConfiguration()
+            case .whiteNoise:
+                return BayerSettingsConfiguration()
+            case .noise:
+                return NoiseDitheringSettingsConfiguration()
             }
         }
         
