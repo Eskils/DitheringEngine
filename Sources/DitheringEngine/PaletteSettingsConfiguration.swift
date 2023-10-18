@@ -299,6 +299,28 @@ public class BayerSettingsConfiguration: PaletteSettingsConfiguration {
             .eraseToAnyPublisher()
     }
     
+}
+
+public class WhiteNoiseSettingsConfiguration: PaletteSettingsConfiguration {
+    
+    /// Exponent for size of threshold map m=2^n. mxm. Value between 7 and 10. Default value is 7.
+    public let thresholdMapSize: CurrentValueSubject<Int, Never>
+    
+    var size: Int {
+        let exponent = thresholdMapSize.value
+        return 2 << (exponent - 1)
+    }
+    
+    public init(thresholdMapSize: Int = 7) {
+        self.thresholdMapSize = CurrentValueSubject(thresholdMapSize)
+    }
+    
+    public func didChange(storingIn cancellables: inout Set<AnyCancellable>) -> AnyPublisher<Any, Never> {
+        
+        return thresholdMapSize
+            .map { $0 as Any }
+            .eraseToAnyPublisher()
+    }
     
 }
 

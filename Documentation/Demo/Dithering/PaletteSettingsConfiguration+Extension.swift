@@ -141,6 +141,15 @@ class CustomPaletteSettingsConfigurationWithView: PaletteSettingsConfigurationWi
             
             let (didChange, cancellables) = makeDidChangePublisher(from: views)
             return CustomPaletteSettingsConfigurationWithView(settingsConfiguration: settingsConfiguration, views: views, didChangePublisher: didChange, cancellables: cancellables)
+        case is WhiteNoiseSettingsConfiguration:
+            let settingsConfiguration = paletteSettingsConfiguration as! WhiteNoiseSettingsConfiguration
+            
+            let views = [
+                NumberSettingViewDescription(subject: settingsConfiguration.thresholdMapSize, title: "Threshold Map Size", min: 7, max: 10)
+            ]
+            
+            let (didChange, cancellables) = makeDidChangePublisher(from: views)
+            return CustomPaletteSettingsConfigurationWithView(settingsConfiguration: settingsConfiguration, views: views, didChangePublisher: didChange, cancellables: cancellables)
         case is NoiseDitheringSettingsConfiguration:
             let settingsConfiguration = paletteSettingsConfiguration as! NoiseDitheringSettingsConfiguration
             let views: [any SettingView] = [

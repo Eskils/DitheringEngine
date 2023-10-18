@@ -313,7 +313,7 @@ extension DitheringEngine {
                 let thresholdMapSize = settings.size
                 engine.dither_Bayer(palette: lut, thresholdMapSize: thresholdMapSize)
             case .whiteNoise:
-                let settings = (settings as? BayerSettingsConfiguration) ?? .init()
+                let settings = (settings as? WhiteNoiseSettingsConfiguration) ?? .init()
                 let thresholdMapSize = settings.size
                 engine.dither_WhiteNoise(palette: lut, thresholdMapSize: thresholdMapSize)
             case .noise:
@@ -361,7 +361,7 @@ extension DitheringEngine {
             case .bayer:
                 return BayerSettingsConfiguration()
             case .whiteNoise:
-                return BayerSettingsConfiguration()
+                return WhiteNoiseSettingsConfiguration()
             case .noise:
                 return NoiseDitheringSettingsConfiguration()
             }

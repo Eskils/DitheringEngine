@@ -177,7 +177,7 @@ White noise dithering adds random noise to the image when converting to the sele
 ![White noise dithering with default settings. CGA Mode 5 | High palette](Documentation/Resources/WhiteNoiseApple2.png)
 
 **Token:** `.whiteNoise`  
-**Settings:** `BayerSettingsConfiguration`
+**Settings:** `WhiteNoiseSettingsConfiguration`
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
@@ -190,7 +190,7 @@ try ditheringEngine.set(image: inputCGImage)
 let cgImage = try ditheringEngine.dither(
     usingMethod: .whiteNoise,
     andPalette: .apple2,
-    withDitherMethodSettings: BayerSettingsConfiguration(),
+    withDitherMethodSettings: WhiteNoiseSettingsConfiguration(),
     withPaletteSettings: Apple2SettingsConfiguration(mode: .hiRes)
 )
 ```
