@@ -13,7 +13,7 @@ import DitheringEngine
 protocol PaletteSettingsConfigurationWithView: AnyObject {
     var views: [any SettingView] { get }
     var didChangePublisher: AnyPublisher<Any, Never> { get }
-    var settingsConfiguration: PaletteSettingsConfiguration { get }
+    var settingsConfiguration: SettingsConfiguration { get }
 }
 
 protocol WithView: AnyObject {
@@ -23,7 +23,7 @@ protocol WithView: AnyObject {
 
 class DitherMethodSettingsConfigurationWithView: WithView {
     
-    typealias Enum = DitheringEngine.DitherMethod
+    typealias Enum = DitherMethod
     
     let settingsConfiguration: DitherMethodSettingsConfiguration
     
@@ -44,7 +44,7 @@ class DitherMethodSettingsConfigurationWithView: WithView {
     }
 }
 
-class PaletteSelectionSettingsConfigurationWithView: PaletteSettingsConfiguration, ObservableObject {
+class PaletteSelectionSettingsConfigurationWithView: SettingsConfiguration, ObservableObject {
     typealias Enum = Palette
     
     let settingsConfiguration: PaletteSelectionSettingsConfiguration
@@ -65,13 +65,13 @@ class PaletteSelectionSettingsConfigurationWithView: PaletteSettingsConfiguratio
         ]
     }
     
-    func didChange(storingIn cancellables: inout Set<AnyCancellable>) -> AnyPublisher<Any, Never> {
+    func didChange() -> AnyPublisher<Any, Never> {
         return didChangePublisher
     }
 }
 
 class EmptyPaletteSettingsConfigurationWithView: PaletteSettingsConfigurationWithView {
-    let settingsConfiguration: PaletteSettingsConfiguration = EmptyPaletteSettingsConfiguration()
+    let settingsConfiguration: SettingsConfiguration = EmptyPaletteSettingsConfiguration()
     
     let didChangePublisher: AnyPublisher<Any, Never> = .empty()
     
@@ -80,7 +80,7 @@ class EmptyPaletteSettingsConfigurationWithView: PaletteSettingsConfigurationWit
 
 class CustomPaletteSettingsConfigurationWithView: PaletteSettingsConfigurationWithView {
     
-    let settingsConfiguration: PaletteSettingsConfiguration
+    let settingsConfiguration: SettingsConfiguration
     
     let views: [any SettingView]
     
@@ -88,7 +88,7 @@ class CustomPaletteSettingsConfigurationWithView: PaletteSettingsConfigurationWi
     
     var cancellables = Set<AnyCancellable>()
     
-    init(settingsConfiguration: PaletteSettingsConfiguration, views: [any SettingView], didChangePublisher: AnyPublisher<Any, Never>, cancellables: Set<AnyCancellable>? = nil) {
+    init(settingsConfiguration: SettingsConfiguration, views: [any SettingView], didChangePublisher: AnyPublisher<Any, Never>, cancellables: Set<AnyCancellable>? = nil) {
         self.settingsConfiguration = settingsConfiguration
         self.views = views
         self.didChangePublisher = didChangePublisher
@@ -98,7 +98,7 @@ class CustomPaletteSettingsConfigurationWithView: PaletteSettingsConfigurationWi
         }
     }
     
-    static func from(paletteSettingsConfiguration: PaletteSettingsConfiguration) -> PaletteSettingsConfigurationWithView {
+    static func from(paletteSettingsConfiguration: SettingsConfiguration) -> PaletteSettingsConfigurationWithView {
         switch paletteSettingsConfiguration {
         case is EmptyPaletteSettingsConfiguration:
             return EmptyPaletteSettingsConfigurationWithView()
@@ -107,7 +107,7 @@ class CustomPaletteSettingsConfigurationWithView: PaletteSettingsConfigurationWi
             
             let views: [any SettingView] = [
                 MatrixInputSettingViewDescription(matrix: settingsConfiguration.matrix, title: "Matrix"),
-                EnumSettingViewDescription(subject: settingsConfiguration.direction, title: "Direction", options: FloydSteinbergDitheringDirection.allCases)
+                EnumSettingViewDescription(subject: settingsConfiguration.direction, title: "Direction", options: FloydSteinbergDitheringDescription.allCases)
             ]
             
             let (didChange, cancellables) = makeDidChangePublisher(from: views)

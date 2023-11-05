@@ -11,7 +11,7 @@ struct ContentView: View {
     
     @State var cancellables = Set<AnyCancellable>()
     
-    let ditherMethodSetting = DitheringEngine.DitherMethod.setting
+    let ditherMethodSetting = DitherMethod.setting
     
     var body: some View {
         HStack {

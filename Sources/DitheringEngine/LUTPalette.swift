@@ -5,19 +5,9 @@
 //  Created by Eskil Gjerde Sviggum on 02/12/2022.
 //
 
-import Foundation
-
 public struct LUTPalette<Color: ImageColor> {
     
     private let type: PaletteType
-    
-    public static func from(lut: LUT<Color>) -> LUTPalette<Color> {
-        LUTPalette(type: .lut(lut))
-    }
-    
-    public static func from(lutCollection: LUTCollection<Color>) -> LUTPalette<Color> {
-        LUTPalette(type: .lutCollection(lutCollection))
-    }
     
     private func lightnessOf<T: ImageColor>(color: SIMD3<T>) -> Float {
         let color = color.toFloatSIMD3()
@@ -103,7 +93,19 @@ public struct LUTPalette<Color: ImageColor> {
             return collection.entries.map { $0.toUInt8SIMD3() }
         }
     }
+}
+
+extension LUTPalette {
+    public static func from(lut: LUT<Color>) -> LUTPalette<Color> {
+        LUTPalette(type: .lut(lut))
+    }
     
+    public static func from(lutCollection: LUTCollection<Color>) -> LUTPalette<Color> {
+        LUTPalette(type: .lutCollection(lutCollection))
+    }
+}
+
+extension LUTPalette {
     public enum PaletteType {
         case lut(LUT<Color>)
         case lutCollection(LUTCollection<Color>)

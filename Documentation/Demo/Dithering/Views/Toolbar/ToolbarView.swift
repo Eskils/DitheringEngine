@@ -15,7 +15,7 @@ struct ToolbarView: View {
     @State var showImagePicker = false
     @State var showFilePicker = false
     
-    @State var ditherMethod: DitheringEngine.DitherMethod = .none
+    @State var ditherMethod: DitherMethod = .none
     
     @ObservedObject
     var viewModel: ViewModel

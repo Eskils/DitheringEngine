@@ -113,7 +113,7 @@ struct NumberSettingView<Number: RepresentableAsFloatingPoint>: View {
     
 }
 
-struct EnumSettingViewDescription<Enum: SettingsEnum>: SettingView, ViewConstructable, Identifiable {
+struct EnumSettingViewDescription<Enum: Nameable>: SettingView, ViewConstructable, Identifiable {
     let id = UUID().uuidString
     
     let subject: CurrentValueSubject<Enum, Never>
@@ -138,7 +138,7 @@ struct TitleLabel: View {
     
 }
 
-struct EnumSettingView<Enum: SettingsEnum>: View {
+struct EnumSettingView<Enum: Nameable>: View {
     
     let description: EnumSettingViewDescription<Enum>
     
