@@ -23,7 +23,7 @@ Supported dithering methods are:
   - White noise (Ordered dithering)
   - Noise (Ordered dithering)
   
-  > **NOTE: ** The ordered dither methods are computed on the GPU usin Metal by default. You can specify to run them on the CPU if desired.
+  > **NOTE:** The ordered dither methods are computed on the GPU using Metal by default. You can specify to run them on the CPU if desired.
 
 Supported out of the box palettes are:
   - Black & White
