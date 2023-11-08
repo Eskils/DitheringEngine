@@ -10,6 +10,7 @@ import Combine
 public final class PaletteSelectionSettingsConfiguration: SettingsConfiguration {
     public typealias Enum = Palette
     
+    /// Specifies the palette to use for dithering.
     public let palette: CurrentValueSubject<Enum, Never>
     
     public init(mode: Enum = .bw) {

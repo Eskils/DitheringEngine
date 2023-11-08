@@ -8,9 +8,12 @@
 import Combine
 
 public final class QuantizedColorSettingsConfiguration: SettingsConfiguration {
+    
+    /// Specifies the number of bits to quantize to.
+    /// The number of bits can be between 0 and 8.
     public let bits: CurrentValueSubject<Double, Never>
     
-    /// Bytes can be anything from 0 to 8.
+    /// Bits can be anything from 0 to 8.
     public init(bits: Int) {
         self.bits = CurrentValueSubject(Double(bits))
     }

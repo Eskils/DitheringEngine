@@ -8,7 +8,7 @@
 import simd
 
 public struct LUTCollection<Color: ImageColor> {
-    private let lut: UnsafePointer<SIMD3<Color>>
+    let lut: UnsafePointer<SIMD3<Color>>
     public let count: Int
     
     public init(entries: [SIMD3<Color>]) {

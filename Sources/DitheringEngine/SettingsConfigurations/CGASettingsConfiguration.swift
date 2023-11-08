@@ -10,6 +10,8 @@ import Combine
 public final class CGASettingsConfiguration: SettingsConfiguration {
     public typealias Enum = Palette.CGAMode
     
+    /// Specifies the graphics mode to use.
+    /// Each graphics mode has a unique set of colors.
     public let mode: CurrentValueSubject<Enum, Never>
     
     public init(mode: Enum = .palette1High) {

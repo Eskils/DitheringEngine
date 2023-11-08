@@ -412,3 +412,43 @@ struct CustomImageSettingView: View {
         })
     }
 }
+
+struct BooleanSettingViewDescription: SettingView, ViewConstructable, Identifiable {
+    let id = UUID().uuidString
+    
+    let subject: CurrentValueSubject<Bool, Never>
+    let title: String
+    
+    init(isOn: CurrentValueSubject<Bool, Never>, title: String) {
+        self.title = title
+        self.subject = isOn
+    }
+    
+    func makeView() -> AnyView {
+        AnyView(BooleanSettingView(description: self))
+    }
+}
+
+struct BooleanSettingView: View {
+    
+    let description: BooleanSettingViewDescription
+    
+    @State
+    var state: Bool
+    
+    init(description: BooleanSettingViewDescription) {
+        self.description = description
+        self._state = State(wrappedValue: description.subject.value)
+    }
+    
+    var body: some View {
+        let bindedValue = binding(_state) { val in
+            self.description.subject.send(val)
+        }
+                    
+        Toggle(isOn: bindedValue) {
+            Text(description.title)
+        }
+    }
+    
+}

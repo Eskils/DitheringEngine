@@ -7,17 +7,17 @@
 
 public struct LUTPalette<Color: ImageColor> {
     
-    private let type: PaletteType
+    let type: PaletteType
     
     private func lightnessOf<T: ImageColor>(color: SIMD3<T>) -> Float {
         let color = color.toFloatSIMD3()
-        let max = 3 * Float(UInt8.max)
+        let max: Float = 3 * 255
         return color.sum() / max
     }
     
     private func lightnessOfComponentsIn<T: ImageColor>(color: SIMD3<T>) -> SIMD3<Float> {
         let color = color.toFloatSIMD3()
-        let max = Float(UInt8.max)
+        let max: Float = 255
         let maxVec = SIMD3(repeating: max)
         return color / maxVec
     }
@@ -55,6 +55,15 @@ public struct LUTPalette<Color: ImageColor> {
             } else {
                 return lut.count
             }
+        case .lutCollection(let lutCollection):
+            return lutCollection.count
+        }
+    }
+    
+    var numberOfEntries: Int {
+        switch type {
+        case .lut(let lut):
+            return lut.count
         case .lutCollection(let lutCollection):
             return lutCollection.count
         }

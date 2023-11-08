@@ -11,6 +11,8 @@ public class DitheringEngine {
     private var floatingImageDescription: FloatingImageDescription?
     private var resultImageDescription: ImageDescription?
     
+    let metalOrderedDithering = MetalOrderedDithering()
+    
     public let palettes = Palettes()
     
     private let seed = Int(arc4random())
@@ -107,7 +109,7 @@ extension DitheringEngine {
         }
         
         let lut = palette.lut(fromPalettes: palettes, settings: paletteSettings)
-        let ditherMethods = DitherMethods(imageDescription: imageDescription, resultImageDescription: resultImageDescription, floatingImageDescription: floatingImageDescription, seed: seed)
+        let ditherMethods = DitherMethods(imageDescription: imageDescription, resultImageDescription: resultImageDescription, floatingImageDescription: floatingImageDescription, seed: seed, orderedDitheringMetal: metalOrderedDithering)
         method.run(withDitherMethods: ditherMethods, lut: lut, settings: ditherSettings)
         
         return try generateResultImage()

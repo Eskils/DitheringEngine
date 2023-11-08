@@ -22,6 +22,8 @@ Supported dithering methods are:
   - Bayer (Ordered dithering)
   - White noise (Ordered dithering)
   - Noise (Ordered dithering)
+  
+  > **NOTE: ** The ordered dither methods are computed on the GPU usin Metal by default. You can specify to run them on the CPU if desired.
 
 Supported out of the box palettes are:
   - Black & White
@@ -157,6 +159,7 @@ Bayer dithering is a type of ordered dithering which adds a precalculated thresh
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | thresholdMapSize | Int | `4` | Specifies the size of the square threshold matrix. Default is 4x4. |
+| performOnCPU | Bool | `false` | Determines wether to perform the computation on the CPU. If false, the GPU is used for quicker performance. |
 
 Example: 
 ```swift
@@ -182,6 +185,7 @@ White noise dithering adds random noise to the image when converting to the sele
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | thresholdMapSize | Int | `7` | Specifies the size of the square threshold matrix. Default is 128x128. |
+| performOnCPU | Bool | `false` | Determines wether to perform the computation on the CPU. If false, the GPU is used for quicker performance. |
 
 Example: 
 ```swift
@@ -209,6 +213,7 @@ You can provide your own noise texture to sample when performing ordered ditheri
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | noisePattern | CGImage? | `nil` | Specifies the noise pattern to use for ordered dithering. |
+| performOnCPU | Bool | `false` | Determines wether to perform the computation on the CPU. If false, the GPU is used for quicker performance. |
 
 Example: 
 ```swift

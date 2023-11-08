@@ -135,8 +135,9 @@ class CustomPaletteSettingsConfigurationWithView: PaletteSettingsConfigurationWi
         case is BayerSettingsConfiguration:
             let settingsConfiguration = paletteSettingsConfiguration as! BayerSettingsConfiguration
             
-            let views = [
-                NumberSettingViewDescription(subject: settingsConfiguration.thresholdMapSize, title: "Threshold Map Size", min: 0, max: 8)
+            let views: [any SettingView] = [
+                NumberSettingViewDescription(subject: settingsConfiguration.thresholdMapSize, title: "Threshold Map Size", min: 0, max: 8),
+                BooleanSettingViewDescription(isOn: settingsConfiguration.performOnCPU, title: "Perform on CPU"),
             ]
             
             let (didChange, cancellables) = makeDidChangePublisher(from: views)
@@ -144,8 +145,9 @@ class CustomPaletteSettingsConfigurationWithView: PaletteSettingsConfigurationWi
         case is WhiteNoiseSettingsConfiguration:
             let settingsConfiguration = paletteSettingsConfiguration as! WhiteNoiseSettingsConfiguration
             
-            let views = [
-                NumberSettingViewDescription(subject: settingsConfiguration.thresholdMapSize, title: "Threshold Map Size", min: 7, max: 10)
+            let views: [any SettingView] = [
+                NumberSettingViewDescription(subject: settingsConfiguration.thresholdMapSize, title: "Threshold Map Size", min: 7, max: 10),
+                BooleanSettingViewDescription(isOn: settingsConfiguration.performOnCPU, title: "Perform on CPU"),
             ]
             
             let (didChange, cancellables) = makeDidChangePublisher(from: views)
@@ -153,7 +155,8 @@ class CustomPaletteSettingsConfigurationWithView: PaletteSettingsConfigurationWi
         case is NoiseDitheringSettingsConfiguration:
             let settingsConfiguration = paletteSettingsConfiguration as! NoiseDitheringSettingsConfiguration
             let views: [any SettingView] = [
-                CustomImageSettingViewDescription(image: settingsConfiguration.noisePattern, title: "Noise Pattern")
+                CustomImageSettingViewDescription(image: settingsConfiguration.noisePattern, title: "Noise Pattern"),
+                BooleanSettingViewDescription(isOn: settingsConfiguration.performOnCPU, title: "Perform on CPU"),
             ]
             
             let (didChange, cancellables) = makeDidChangePublisher(from: views)

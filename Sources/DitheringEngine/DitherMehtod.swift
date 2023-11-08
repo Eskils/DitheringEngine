@@ -35,11 +35,13 @@ extension DitherMethod {
         case .bayer:
             let settings = (settings as? BayerSettingsConfiguration) ?? .init()
             let thresholdMapSize = settings.size
-            ditherMethods.bayer(palette: lut, thresholdMapSize: thresholdMapSize)
+            let performOnCPU = settings.performOnCPU.value
+            ditherMethods.bayer(palette: lut, thresholdMapSize: thresholdMapSize, performOnCPU: performOnCPU)
         case .whiteNoise:
             let settings = (settings as? WhiteNoiseSettingsConfiguration) ?? .init()
             let thresholdMapSize = settings.size
-            ditherMethods.whiteNoise(palette: lut, thresholdMapSize: thresholdMapSize)
+            let performOnCPU = settings.performOnCPU.value
+            ditherMethods.whiteNoise(palette: lut, thresholdMapSize: thresholdMapSize, performOnCPU: performOnCPU)
         case .noise:
             let settings = (settings as? NoiseDitheringSettingsConfiguration) ?? .init()
             guard let noisePattern = settings.noisePattern.value else {
@@ -47,8 +49,9 @@ extension DitherMethod {
                 return
             }
             let noisePatternBuffered = ImageDescription(width: noisePattern.width, height: noisePattern.height, components: noisePattern.bytesPerRow / noisePattern.width)
+            let performOnCPU = settings.performOnCPU.value
             if noisePatternBuffered.setBufferFrom(image: noisePattern) {
-                ditherMethods.noise(palette: lut, noisePattern: noisePatternBuffered)
+                ditherMethods.noise(palette: lut, noisePattern: noisePatternBuffered, performOnCPU: performOnCPU)
             } else {
                 print("Could not load noise pattern.")
                 ditherMethods.none(palette: lut)

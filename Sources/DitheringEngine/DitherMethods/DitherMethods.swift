@@ -10,4 +10,5 @@ struct DitherMethods {
     let resultImageDescription: ImageDescription
     let floatingImageDescription: FloatingImageDescription
     let seed: Int
+    let orderedDitheringMetal: MetalOrderedDithering
 }

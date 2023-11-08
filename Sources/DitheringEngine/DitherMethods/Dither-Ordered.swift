@@ -6,7 +6,7 @@
 //
 
 extension DitherMethods {
-    func ordered(palette: BytePalette, thresholdMap: FloatingThresholdMap, normalizationOffset: Float, thresholdMultiplier: Float) {
+    func orderedCPU(palette: BytePalette, thresholdMap: FloatingThresholdMap, normalizationOffset: Float, thresholdMultiplier: Float) {
         for y in 0..<floatingImageDescription.height {
             for x in 0..<floatingImageDescription.width {
                 let i = y * floatingImageDescription.width + x
@@ -21,6 +21,24 @@ extension DitherMethods {
                 
                 resultImageDescription.setColorAt(index: i, color: color)
             }
+        }
+    }
+    
+    func ordered(palette: BytePalette, thresholdMap: FloatingThresholdMap, normalizationOffset: Float, thresholdMultiplier: Float, performOnCPU: Bool = false) {
+        if performOnCPU {
+            orderedCPU(palette: palette, thresholdMap: thresholdMap, normalizationOffset: normalizationOffset, thresholdMultiplier: thresholdMultiplier)
+            return
+        }
+        
+        do {
+            orderedDitheringMetal.imageDescription = imageDescription
+            orderedDitheringMetal.resultImageDescription = resultImageDescription
+            try orderedDitheringMetal.orderedDitheringMetal(palette: palette, thresholdMap: thresholdMap, normalizationOffset: normalizationOffset, thresholdMultiplier: thresholdMultiplier)
+        } catch {
+            #if DEBUG
+            print("Cannot run ordered dithering on GPU with error: \(error)")
+            #endif
+            orderedCPU(palette: palette, thresholdMap: thresholdMap, normalizationOffset: normalizationOffset, thresholdMultiplier: thresholdMultiplier)
         }
     }
 }

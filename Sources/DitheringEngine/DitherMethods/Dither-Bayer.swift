@@ -6,7 +6,7 @@
 //
 
 extension DitherMethods {
-    func bayer(palette: BytePalette, thresholdMapSize: Int) {
+    func bayer(palette: BytePalette, thresholdMapSize: Int, performOnCPU: Bool) {
         let thresholdMapSize = clamp(thresholdMapSize, min: 2, max: 256)
         let thresholdMap = FloatingThresholdMap.generateBayerThresholdMap(n: thresholdMapSize)
         let normalizationOffset = Float(thresholdMap.count) / 2
@@ -16,7 +16,8 @@ extension DitherMethods {
             palette: palette,
             thresholdMap: thresholdMap,
             normalizationOffset: normalizationOffset,
-            thresholdMultiplier: thresholdMultiplier
+            thresholdMultiplier: thresholdMultiplier,
+            performOnCPU: performOnCPU
         )
         
         thresholdMap.release()

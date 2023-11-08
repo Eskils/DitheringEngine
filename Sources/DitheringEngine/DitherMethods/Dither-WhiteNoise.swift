@@ -6,7 +6,7 @@
 //
 
 extension DitherMethods {
-    func whiteNoise(palette: BytePalette, thresholdMapSize: Int) {
+    func whiteNoise(palette: BytePalette, thresholdMapSize: Int, performOnCPU: Bool) {
         let thresholdMapSize = clamp(thresholdMapSize, min: 2, max: 256)
         let thresholdMap = FloatingThresholdMap.generateWhiteNoiseThresholdMap(n: thresholdMapSize, max: 255, seed: seed)
         let normalizationOffset: Float = 128
@@ -16,7 +16,8 @@ extension DitherMethods {
             palette: palette,
             thresholdMap: thresholdMap,
             normalizationOffset: normalizationOffset,
-            thresholdMultiplier: thresholdMultiplier
+            thresholdMultiplier: thresholdMultiplier,
+            performOnCPU: performOnCPU
         )
         
         thresholdMap.release()
