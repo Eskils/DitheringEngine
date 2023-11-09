@@ -5,6 +5,7 @@
 //  Created by Eskil Gjerde Sviggum on 29/11/2022.
 //
 
+import CoreVideo.CVPixelBuffer
 import CoreGraphics
 import simd
 
@@ -150,6 +151,21 @@ extension GenericImageDescription where Color == UInt8 {
         return true
     }
     
+    /// Sets the image data of the image
+    func setBufferFrom(pixelBuffer: CVPixelBuffer) -> Bool {
+        if isReleased {
+            return false
+        }
+        
+        guard let baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer)?.assumingMemoryBound(to: UInt8.self) else {
+            return false
+        }
+        
+        buffer.update(from: baseAddress, count: count)
+        
+        return true
+    }
+    
     /// Converts to FloatingImageDescription
     func toFloatingImageDescription() -> FloatingImageDescription {
         let imageDescription = FloatingImageDescription(width: width, height: height, components: components)
@@ -166,7 +182,7 @@ extension GenericImageDescription where Color == UInt8 {
     /// Generates a CGImage from the image buffer data.
     func makeCGImage() throws -> CGImage {
         guard let component = Component(rawValue: components) else {
-            throw MakeCGImage.Error.invalidNumberOfComponents
+            throw MakeImage.Error.invalidNumberOfComponents
         }
         
         guard
@@ -174,23 +190,49 @@ extension GenericImageDescription where Color == UInt8 {
                 data: buffer,
                 width: width,
                 height: height,
-                bitsPerComponent: MakeCGImage.bitsPerComponent,
+                bitsPerComponent: MakeImage.bitsPerComponent,
                 bytesPerRow: bytesPerRow,
                 space: component.colorSpace,
                 bitmapInfo: component.bitmapInfo
             )
         else {
-            throw MakeCGImage.Error.failedToCreateCGContext
+            throw MakeImage.Error.failedToCreateCGContext
         }
         
         guard let image = context.makeImage() else {
-            throw MakeCGImage.Error.failedToCreateImage
+            throw MakeImage.Error.failedToCreateImage
         }
         
         return image
     }
     
-    struct MakeCGImage {
+    /// Generates a CVPixelBuffer from the image buffer data.
+    func makePixelBuffer() throws -> CVPixelBuffer {
+        var pixelBuffer: CVPixelBuffer?
+        let attrs = [kCVPixelBufferCGImageCompatibilityKey: kCFBooleanTrue,
+             kCVPixelBufferCGBitmapContextCompatibilityKey: kCFBooleanTrue] as CFDictionary
+        
+        let status = CVPixelBufferCreateWithBytes(
+            kCFAllocatorDefault,
+            width,
+            height,
+            kCVPixelFormatType_32BGRA,
+            buffer,
+            bytesPerRow,
+            nil,
+            nil,
+            attrs,
+            &pixelBuffer
+        )
+        
+        guard let pixelBuffer, status == kCVReturnSuccess else {
+            throw MakeImage.Error.failedToCreateCVPixelBuffer(status: status)
+        }
+        
+        return pixelBuffer
+    }
+    
+    struct MakeImage {
         private init() {}
         
         static let bitsPerComponent = UInt8.bitWidth
@@ -199,6 +241,7 @@ extension GenericImageDescription where Color == UInt8 {
             case invalidNumberOfComponents
             case failedToCreateCGContext
             case failedToCreateImage
+            case failedToCreateCVPixelBuffer(status: CVReturn)
         }
     }
     

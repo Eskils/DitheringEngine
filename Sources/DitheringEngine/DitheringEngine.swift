@@ -1,3 +1,4 @@
+import CoreVideo.CVPixelBuffer
 import CoreGraphics
 import simd
 
@@ -57,6 +58,40 @@ public class DitheringEngine {
         self.resultImageDescription = newResultImageDescription
     }
     
+    public func set(pixelBuffer: CVPixelBuffer) throws {
+        let width = CVPixelBufferGetWidth(pixelBuffer)
+        let height = CVPixelBufferGetHeight(pixelBuffer)
+        let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
+        let components = bytesPerRow / width
+        var hasKeptOldImageDescription = false
+        
+        let newImageDescription: ImageDescription
+        if let imageDescription, imageDescription.width == width, imageDescription.height == height, imageDescription.components == imageDescription.components {
+            hasKeptOldImageDescription = true
+            newImageDescription = imageDescription
+        } else {
+            newImageDescription = ImageDescription(width: width, height: height, components: components)
+        }
+        if !newImageDescription.setBufferFrom(pixelBuffer: pixelBuffer) {
+            throw SetImage.Error.couldNotSetBufferFromPixelBuffer
+        }
+        
+        if !hasKeptOldImageDescription {
+            self.imageDescription?.release()
+        }
+        self.imageDescription = newImageDescription
+        
+        self.floatingImageDescription?.release()
+        self.floatingImageDescription = newImageDescription.toFloatingImageDescription()
+        
+        if !hasKeptOldImageDescription {
+            self.resultImageDescription?.release()
+            let newResultImageDescription = ImageDescription(width: width, height: height, components: 4)
+            newResultImageDescription.buffer.update(repeating: 255, count: newResultImageDescription.count)
+            self.resultImageDescription = newResultImageDescription
+        }
+    }
+    
     public func generateOriginalImage() throws -> CGImage {
         guard let imageDescription else {
             throw Error.noImageDescription
@@ -73,6 +108,14 @@ public class DitheringEngine {
         return try resultImageDescription.makeCGImage()
     }
     
+    public func generateResultPixelBuffer() throws -> CVPixelBuffer {
+        guard let resultImageDescription else {
+            throw Error.noImageDescription
+        }
+        
+        return try resultImageDescription.makePixelBuffer()
+    }
+    
 }
 
 extension DitheringEngine {
@@ -87,6 +130,7 @@ extension DitheringEngine {
             case invalidBitsPerComponent(Int)
             case invalidNumberOfComponents(Int)
             case couldNotSetBufferFromCGImage
+            case couldNotSetBufferFromPixelBuffer
             case couldNotConvertColorspace
         }
     }
@@ -99,6 +143,12 @@ extension DitheringEngine {
 
 extension DitheringEngine {
     
+    private func performDithering(usingMethod method: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherSettings: SettingsConfiguration, withPaletteSettings paletteSettings: SettingsConfiguration, imageDescription: ImageDescription, floatingImageDescription: FloatingImageDescription, resultImageDescription: ImageDescription) {
+        let lut = palette.lut(fromPalettes: palettes, settings: paletteSettings)
+        let ditherMethods = DitherMethods(imageDescription: imageDescription, resultImageDescription: resultImageDescription, floatingImageDescription: floatingImageDescription, seed: seed, orderedDitheringMetal: metalOrderedDithering)
+        method.run(withDitherMethods: ditherMethods, lut: lut, settings: ditherSettings)
+    }
+    
     public func dither(usingMethod method: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherSettings: SettingsConfiguration, withPaletteSettings paletteSettings: SettingsConfiguration) throws -> CGImage {
         guard
             let imageDescription,
@@ -108,11 +158,39 @@ extension DitheringEngine {
             return try generateResultImage()
         }
         
-        let lut = palette.lut(fromPalettes: palettes, settings: paletteSettings)
-        let ditherMethods = DitherMethods(imageDescription: imageDescription, resultImageDescription: resultImageDescription, floatingImageDescription: floatingImageDescription, seed: seed, orderedDitheringMetal: metalOrderedDithering)
-        method.run(withDitherMethods: ditherMethods, lut: lut, settings: ditherSettings)
+        performDithering(
+            usingMethod: method,
+            andPalette: palette,
+            withDitherMethodSettings: ditherSettings,
+            withPaletteSettings: paletteSettings,
+            imageDescription: imageDescription,
+            floatingImageDescription: floatingImageDescription,
+            resultImageDescription: resultImageDescription
+        )
         
         return try generateResultImage()
+    }
+    
+    public func ditherIntoPixelBuffer(usingMethod method: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherSettings: SettingsConfiguration, withPaletteSettings paletteSettings: SettingsConfiguration) throws -> CVPixelBuffer {
+        guard
+            let imageDescription,
+            let floatingImageDescription,
+            let resultImageDescription
+        else {
+            return try generateResultPixelBuffer()
+        }
+        
+        performDithering(
+            usingMethod: method,
+            andPalette: palette,
+            withDitherMethodSettings: ditherSettings,
+            withPaletteSettings: paletteSettings,
+            imageDescription: imageDescription,
+            floatingImageDescription: floatingImageDescription,
+            resultImageDescription: resultImageDescription
+        )
+        
+        return try generateResultPixelBuffer()
     }
     
 }
