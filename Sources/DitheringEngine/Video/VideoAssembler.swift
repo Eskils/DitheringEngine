@@ -48,9 +48,10 @@ class VideoAssembler {
         let frametime = CMTimeMake(value: Int64(framecount), timescale: Int32(framerate))
         framecount += 1
         
-        assetWriterInput.requestMediaDataWhenReady(on: .global()) {
-            self.assetWriterAdaptor.append(pixelBuffer, withPresentationTime: frametime)
-        }
+        while !assetWriterInput.isReadyForMoreMediaData {}
+        self.assetWriterAdaptor.append(pixelBuffer, withPresentationTime: frametime)
+        
+        print("Finished processing frame \(framecount)")
     }
     
     func generateVideo() async {

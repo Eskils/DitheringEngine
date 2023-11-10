@@ -11,6 +11,7 @@ import DitheringEngine
 
 struct ToolbarView: View {
     
+    @State var selection: MediaFormat?
     @State var selectedImage: UIImage? = nil
     @State var showImagePicker = false
     @State var showFilePicker = false
@@ -21,9 +22,9 @@ struct ToolbarView: View {
     var viewModel: ViewModel
     
     @MainActor
-    init(ditheringEngine: DitheringEngine, appState: AppState) {
+    init(ditheringEngine: DitheringEngine, videoDitheringEngine: VideoDitheringEngine, appState: AppState) {
         self._viewModel = ObservedObject(
-            wrappedValue: ViewModel(ditheringEngine: ditheringEngine, appState: appState)
+            wrappedValue: ViewModel(ditheringEngine: ditheringEngine, videoDitheringEngine: videoDitheringEngine, appState: appState)
         )
     }
     
@@ -74,9 +75,9 @@ struct ToolbarView: View {
             
         }
         .padding(8)
-        .onChange(of: selectedImage ?? UIImage()) { didChoose(image: $0) }
-        .sheet(isPresented: $showImagePicker) { ImagePicker(image: $selectedImage) }
-        .sheet(isPresented: $showFilePicker) { DocumentPicker(image: $selectedImage) }
+        .onChange(of: selection) { didChoose(media: $0) }
+        .sheet(isPresented: $showImagePicker) { ImagePicker(selection: $selection) }
+        .sheet(isPresented: $showFilePicker) { DocumentPicker(selection: $selection) }
         .onAppear(perform: didAppear)
         .onReceive(viewModel.ditherMethodSetting.settingsConfiguration.ditherMethod) { _ in viewModel.didChangeDitherMethod() }
         .onReceive(viewModel.paletteSelectionSetting.palette) { _ in viewModel.didChangePalette() }
@@ -105,6 +106,20 @@ struct ToolbarView: View {
     @MainActor
     func refreshDithering(sending uselessValue: Any) {
         viewModel.performDithering()
+    }
+    
+    @MainActor
+    func didChoose(media: MediaFormat?) {
+        guard let media else {
+            return
+        }
+        
+        switch media {
+        case .image(let image):
+            didChoose(image: image)
+        case .video(let videoURL):
+            viewModel.handleNew(video: videoURL)
+        }
     }
     
     @MainActor

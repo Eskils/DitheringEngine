@@ -66,11 +66,11 @@ public class DitheringEngine {
         var hasKeptOldImageDescription = false
         
         let newImageDescription: ImageDescription
-        if let imageDescription, imageDescription.width == width, imageDescription.height == height, imageDescription.components == imageDescription.components {
+        if let imageDescription, imageDescription.width == width, imageDescription.height == height, imageDescription.components == imageDescription.components, imageDescription.pixelOrdering == .bgra {
             hasKeptOldImageDescription = true
             newImageDescription = imageDescription
         } else {
-            newImageDescription = ImageDescription(width: width, height: height, components: components)
+            newImageDescription = ImageDescription(width: width, height: height, components: components, pixelOrdering: .bgra)
         }
         if !newImageDescription.setBufferFrom(pixelBuffer: pixelBuffer) {
             throw SetImage.Error.couldNotSetBufferFromPixelBuffer
@@ -78,11 +78,15 @@ public class DitheringEngine {
         
         if !hasKeptOldImageDescription {
             self.imageDescription?.release()
+            self.imageDescription = newImageDescription
         }
-        self.imageDescription = newImageDescription
         
-        self.floatingImageDescription?.release()
-        self.floatingImageDescription = newImageDescription.toFloatingImageDescription()
+        if let floatingImageDescription, hasKeptOldImageDescription {
+            newImageDescription.toFloatingImageDescription(writingTo: floatingImageDescription)
+        } else {
+            self.floatingImageDescription?.release()
+            self.floatingImageDescription = newImageDescription.toFloatingImageDescription()
+        }
         
         if !hasKeptOldImageDescription {
             self.resultImageDescription?.release()
@@ -108,12 +112,12 @@ public class DitheringEngine {
         return try resultImageDescription.makeCGImage()
     }
     
-    public func generateResultPixelBuffer() throws -> CVPixelBuffer {
+    func generateResultPixelBuffer(invertedColorBuffer: UnsafeMutablePointer<UInt8>) throws -> CVPixelBuffer {
         guard let resultImageDescription else {
             throw Error.noImageDescription
         }
         
-        return try resultImageDescription.makePixelBuffer()
+        return try resultImageDescription.makePixelBuffer(invertedColorBuffer: invertedColorBuffer)
     }
     
 }
@@ -171,13 +175,13 @@ extension DitheringEngine {
         return try generateResultImage()
     }
     
-    public func ditherIntoPixelBuffer(usingMethod method: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherSettings: SettingsConfiguration, withPaletteSettings paletteSettings: SettingsConfiguration) throws -> CVPixelBuffer {
+    func ditherIntoPixelBuffer(usingMethod method: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherSettings: SettingsConfiguration, withPaletteSettings paletteSettings: SettingsConfiguration, invertedColorBuffer: UnsafeMutablePointer<UInt8>) throws -> CVPixelBuffer {
         guard
             let imageDescription,
             let floatingImageDescription,
             let resultImageDescription
         else {
-            return try generateResultPixelBuffer()
+            return try generateResultPixelBuffer(invertedColorBuffer: invertedColorBuffer)
         }
         
         performDithering(
@@ -190,7 +194,7 @@ extension DitheringEngine {
             resultImageDescription: resultImageDescription
         )
         
-        return try generateResultPixelBuffer()
+        return try generateResultPixelBuffer(invertedColorBuffer: invertedColorBuffer)
     }
     
 }
