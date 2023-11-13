@@ -14,9 +14,41 @@ public final class CustomPaletteSettingsConfiguration: SettingsConfiguration {
         self.palette = CurrentValueSubject(palette)
     }
     
+    public convenience init(entries: [SIMD3<UInt8>]) {
+        let lutCollection = LUTCollection(entries: entries)
+        let palette = BytePalette.from(lutCollection: lutCollection)
+        
+        self.init(palette: palette)
+    }
+    
     public func didChange() -> AnyPublisher<Any, Never> {
         palette
             .map { $0 as Any }
             .eraseToAnyPublisher()
     }
+}
+
+extension CustomPaletteSettingsConfiguration: Codable {
+    
+    enum CodingKeys: String, CodingKey {
+        case entries
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+            
+        let entries = palette.value.colors()
+        try container.encode(entries, forKey: .entries)
+    }
+    
+    public convenience init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let entries = try container.decode([SIMD3<UInt8>].self, forKey: .entries)
+        let lutCollection = LUTCollection(entries: entries)
+        let palette = BytePalette.from(lutCollection: lutCollection)
+        
+        self.init(palette: palette)
+    }
+    
 }

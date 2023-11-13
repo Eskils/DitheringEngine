@@ -6,7 +6,7 @@
 //
 
 extension Palette {
-    public enum Apple2Mode: String, CaseIterable {
+    public enum Apple2Mode: String, CaseIterable, Codable {
         case loRes
         case hiRes
     }

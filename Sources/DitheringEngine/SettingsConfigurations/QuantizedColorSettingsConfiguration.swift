@@ -24,3 +24,25 @@ public final class QuantizedColorSettingsConfiguration: SettingsConfiguration {
             .eraseToAnyPublisher()
     }
 }
+
+extension QuantizedColorSettingsConfiguration: Codable {
+    
+    enum CodingKeys: String, CodingKey {
+        case bits
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+            
+        try container.encode(Int(bits.value), forKey: .bits)
+    }
+    
+    public convenience init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let mode = try container.decode(Int.self, forKey: .bits)
+        
+        self.init(bits: mode)
+    }
+    
+}

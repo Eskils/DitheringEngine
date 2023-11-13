@@ -17,7 +17,7 @@ extension DitherMethods {
 
 // MARK: - Dithering Description
 
-public enum FloydSteinbergDitheringDescription: String, Nameable, Identifiable, ErrorDiffusionDitheringCustomization {
+public enum FloydSteinbergDitheringDescription: String, Nameable, Identifiable, ErrorDiffusionDitheringCustomization, Codable {
     case leftToRight,
          rightToLeft,
          topToBottom,

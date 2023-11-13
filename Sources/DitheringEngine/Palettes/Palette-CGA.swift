@@ -6,7 +6,7 @@
 //
 
 extension Palette {
-    public enum CGAMode: String, CaseIterable {
+    public enum CGAMode: String, CaseIterable, Codable {
         /// Black, green, red, brown
         case palette0Low
         

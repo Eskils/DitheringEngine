@@ -5,7 +5,7 @@
 //  Created by Eskil Gjerde Sviggum on 05/11/2023.
 //
 
-public enum DitherMethod: String, CaseIterable {
+public enum DitherMethod: String, CaseIterable, Codable {
     case none
     case threshold
     case floydSteinberg
