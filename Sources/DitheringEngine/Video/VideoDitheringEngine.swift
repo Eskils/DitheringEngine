@@ -77,7 +77,7 @@ public struct VideoDitheringEngine {
         let width = Int(size.width)
         let height = Int(size.height)
         
-        let videoAssembler = try VideoAssembler(outputURL: outputURL, width: width, height: height, framerate: Int(frameRate))
+        let videoAssembler = try VideoAssembler(outputURL: outputURL, width: width, height: height, framerate: Int(frameRate), emitFrames: true)
         
         let invertedColorBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 4 * width * height)
         

@@ -2,16 +2,7 @@
   "images" : [
     {
       "filename" : "B1A82947-2384-4744-BB2A-61D270A8F929_1_105_c.jpeg",
-      "idiom" : "universal",
-      "scale" : "1x"
-    },
-    {
-      "idiom" : "universal",
-      "scale" : "2x"
-    },
-    {
-      "idiom" : "universal",
-      "scale" : "3x"
+      "idiom" : "universal"
     }
   ],
   "info" : {

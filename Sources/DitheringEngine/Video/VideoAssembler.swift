@@ -6,6 +6,7 @@
 //
 
 import AVFoundation
+import UIKit
 
 class VideoAssembler {
     
@@ -17,12 +18,16 @@ class VideoAssembler {
     private let assetWriterInput: AVAssetWriterInput
     private let assetWriterAdaptor: AVAssetWriterInputPixelBufferAdaptor
     
+    private let emitFrames: Bool
+    private let framesURL: URL
+    
     private var framecount: Int = 0
     
-    init(outputURL: URL, width: Int, height: Int, framerate: Int) throws {
+    init(outputURL: URL, width: Int, height: Int, framerate: Int, emitFrames: Bool = false) throws {
         self.width = width
         self.height = height
         self.framerate = framerate
+        self.emitFrames = emitFrames
         
         self.assetWriter = try AVAssetWriter(outputURL: outputURL, fileType: .mp4)
         
@@ -30,6 +35,16 @@ class VideoAssembler {
         
         self.assetWriterInput = AVAssetWriterInput(mediaType: .video, outputSettings: assetWriterSettings)
         self.assetWriterAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: assetWriterInput, sourcePixelBufferAttributes: nil)
+        
+        self.framesURL = outputURL.deletingLastPathComponent().appendingPathComponent("Frames")
+        
+        if emitFrames {
+            if FileManager.default.fileExists(atPath: framesURL.path) {
+                try? FileManager.default.removeItem(at: framesURL)
+            }
+            
+            try? FileManager.default.createDirectory(at: framesURL, withIntermediateDirectories: true)
+        }
         
         try startVideoAssetWriter()
     }
@@ -45,6 +60,10 @@ class VideoAssembler {
     }
     
     func addFrame(pixelBuffer: CVPixelBuffer) {
+        if emitFrames {
+            storeImageFrame(pixelBuffer: pixelBuffer)
+        }
+        
         let frametime = CMTimeMake(value: Int64(framecount), timescale: Int32(framerate))
         framecount += 1
         
@@ -52,6 +71,17 @@ class VideoAssembler {
         self.assetWriterAdaptor.append(pixelBuffer, withPresentationTime: frametime)
         
         print("Finished processing frame \(framecount)")
+    }
+    
+    let context = CIContext()
+    
+    private func storeImageFrame(pixelBuffer: CVPixelBuffer) {
+        let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+        if let cgImage = context.createCGImage(ciImage, from: ciImage.extent),
+           let data = UIImage(cgImage: cgImage).pngData() {
+            let url = framesURL.appendingPathComponent("DitheredVideoFrame_\(framecount).png")
+            try? data.write(to: url)
+        }
     }
     
     func generateVideo() async {

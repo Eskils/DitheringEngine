@@ -46,7 +46,7 @@ struct ToolbarView: View {
                 }
                 
                 Button { didPressExport() } label: {
-                    Label(title: { Text("Export dithered image") },
+                    Label(title: { Text(viewModel.appState.isInVideoMode ? "Export dithered video" : "Export dithered image") },
                           icon: SF.square.and.arrow.up.swiftUIImage)
                 }
             }
@@ -100,7 +100,11 @@ struct ToolbarView: View {
     }
     
     func didAppear() {
-        self.selectedImage = UIImage(named: "Bergen")
+        guard let image = UIImage(named: "Bergen") else {
+            return
+        }
+        
+        self.selection = .image(image)
     }
     
     @MainActor
@@ -133,6 +137,14 @@ struct ToolbarView: View {
     
     @MainActor
     func didPressExport() {
+        if viewModel.appState.isInVideoMode {
+            exportVideo()
+        } else {
+            exportImage()
+        }
+    }
+    
+    private func exportImage() {
         guard
             let image = viewModel.appState.finalImage?.toUIImage(),
             let imageData = image.pngData()
@@ -141,6 +153,10 @@ struct ToolbarView: View {
         }
         
         share(data: imageData, name: "DitheredImage" + ".png")
+    }
+    
+    private func exportVideo() {
+        viewModel.ditherVideo()
     }
     
     func share(data: Data, name: String) {

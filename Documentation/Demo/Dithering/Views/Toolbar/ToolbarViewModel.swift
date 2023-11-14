@@ -59,11 +59,20 @@ extension ToolbarView {
             appState.isRunning = true
             
             DispatchQueue.global().async {
-                let originalVideo = VideoDescription(url: url)
-                DispatchQueue.main.async {
-                    self.appState.originalVideo = originalVideo
-                    self.appState.isInVideoMode = true
-                    self.performDithering()
+                Task {
+                    do {
+                        let originalVideo = VideoDescription(url: url)
+                        let previewImage = try await originalVideo.getPreviewImage()
+                        try self.ditheringEngine.set(image: previewImage)
+                        DispatchQueue.main.async {
+                            self.appState.originalImage = previewImage
+                            self.appState.originalVideo = originalVideo
+                            self.appState.isInVideoMode = true
+                            self.performDithering()
+                        }
+                    } catch {
+                        print("Could not make preview image: \(error)")
+                    }
                 }
             }
         }
@@ -100,7 +109,7 @@ extension ToolbarView {
             }
         }
         
-        func performDithering() {
+        func ditherVideo() {
             let additionalPalleteSettings = additionalPaletteSelectionSetting
             let additionalDitherMethodSetting = additionalDitherMethodSetting
             
@@ -115,7 +124,7 @@ extension ToolbarView {
                     let palette = paletteSelectionSetting.palette.value
                     let ditherMethod = ditherMethodSetting.ditherMethod.value
                     
-                    if appState.isInVideoMode, var originalVideo = appState.originalVideo {
+                    if var originalVideo = appState.originalVideo {
                         // FileManager.default.temporaryDirectory.absoluteURL
                         let baseURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.absoluteURL
                         let outputURL = baseURL.appendingPathComponent("DitheredVideo.mp4")
@@ -129,27 +138,52 @@ extension ToolbarView {
 //                            print("Resized video")
                             originalVideo.renderSize = CGSize(width: 320, height: 1)
                             videoDitheringEngine.dither(videoDescription: originalVideo, toPalette: palette, usingDitherMethod: ditherMethod, withDitherMethodSettings: additionalDitherMethodSetting.settingsConfiguration, andPaletteSettings: additionalPalleteSettings.settingsConfiguration, outputURL: outputURL) { error in
+                                timer.invalidate()
                                 DispatchQueue.main.async {
-                                    timer.invalidate()
                                     self.appState.isRunning = false
                                     
-                                    print("Finished dithering video with error: \(error)")
+                                    print("Finished dithering video with error: \(String(describing: error))")
                                 }
                             }
 //                        }
-                    } else {
-                        let result = try ditheringEngine.dither(
-                            usingMethod: ditherMethod,
-                            andPalette: palette,
-                            withDitherMethodSettings: additionalDitherMethodSetting.settingsConfiguration,
-                            withPaletteSettings: additionalPalleteSettings.settingsConfiguration
-                        )
-                        
-                        timer.invalidate()
-                        DispatchQueue.main.async {
-                            self.appState.isRunning = false
-                            self.appState.finalImage = result
-                        }
+                    }
+                    
+                } catch {
+                    timer.invalidate()
+                    DispatchQueue.main.async {
+                        self.appState.isRunning = false
+                    }
+                    print("Failed dithering with error: ", error)
+                    //assertionFailure()
+                }
+            }
+        }
+        
+        func performDithering() {
+            let additionalPalleteSettings = additionalPaletteSelectionSetting
+            let additionalDitherMethodSetting = additionalDitherMethodSetting
+            
+            DispatchQueue.global().async { [self] in
+                let timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false) { _ in
+                    DispatchQueue.main.async {
+                        self.appState.isRunning = true
+                    }
+                }
+                
+                do {
+                    let palette = paletteSelectionSetting.palette.value
+                    let ditherMethod = ditherMethodSetting.ditherMethod.value
+                    let result = try ditheringEngine.dither(
+                        usingMethod: ditherMethod,
+                        andPalette: palette,
+                        withDitherMethodSettings: additionalDitherMethodSetting.settingsConfiguration,
+                        withPaletteSettings: additionalPalleteSettings.settingsConfiguration
+                    )
+                    
+                    timer.invalidate()
+                    DispatchQueue.main.async {
+                        self.appState.isRunning = false
+                        self.appState.finalImage = result
                     }
                     
                 } catch {
