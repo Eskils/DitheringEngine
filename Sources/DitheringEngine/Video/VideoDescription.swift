@@ -38,6 +38,20 @@ public struct VideoDescription {
         return videoTrack.naturalSize
     }
     
+    /// Reads the first frame in the video as an image.
+    public func getPreviewImage() async throws -> CGImage {
+        let assetImageGenerator = AVAssetImageGenerator(asset: asset)
+        let time = CMTime.zero
+        
+        if #available(iOS 16, macCatalyst 16, *) {
+            let (image, _) = try await assetImageGenerator.image(at: time)
+            return image
+        } else {
+            let image = try assetImageGenerator.copyCGImage(at: time, actualTime: nil)
+            return image
+        }
+    }
+    
     func getFrames(frameRateCap: Float? = nil, handler: (CVPixelBuffer) throws -> Void) throws {
         let assetReader: AVAssetReader
         do {

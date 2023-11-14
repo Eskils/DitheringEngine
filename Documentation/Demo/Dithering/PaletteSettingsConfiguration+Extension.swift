@@ -44,7 +44,7 @@ class DitherMethodSettingsConfigurationWithView: WithView {
     }
 }
 
-class PaletteSelectionSettingsConfigurationWithView: SettingsConfiguration, ObservableObject {
+class PaletteSelectionSettingsConfigurationWithView: SettingsConfiguration, ObservableObject, Codable {
     typealias Enum = Palette
     
     let settingsConfiguration: PaletteSelectionSettingsConfiguration
@@ -67,6 +67,24 @@ class PaletteSelectionSettingsConfigurationWithView: SettingsConfiguration, Obse
     
     func didChange() -> AnyPublisher<Any, Never> {
         return didChangePublisher
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case settingsConfiguration
+    }
+    
+    required convenience init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let settingsConfiguaration = try container.decode(PaletteSelectionSettingsConfiguration.self, forKey: .settingsConfiguration)
+        
+        self.init(settingsConfiguration: settingsConfiguaration)
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(settingsConfiguration, forKey: .settingsConfiguration)
     }
 }
 
