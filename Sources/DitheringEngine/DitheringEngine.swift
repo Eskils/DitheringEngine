@@ -20,7 +20,8 @@ public class DitheringEngine {
     public init() {}
     
     public func set(image: CGImage) throws {
-        
+        let width = image.width
+        let height = image.height
         let bitmapInfo = CGBitmapInfo(rawValue: (CGBitmapInfo.byteOrder32Big.rawValue | CGImageAlphaInfo.premultipliedLast.rawValue))
         guard let image = convertColorspaceOf(
             image: image,
@@ -40,21 +41,39 @@ public class DitheringEngine {
             throw SetImage.Error.invalidNumberOfComponents(components)
         }
         
-        let newImageDescription = ImageDescription(width: image.width, height: image.height, components: components)
+        
+        var hasKeptOldImageDescription = false
+                
+        let newImageDescription: ImageDescription
+        if let imageDescription, imageDescription.width == width, imageDescription.height == height, imageDescription.components == imageDescription.components {
+            hasKeptOldImageDescription = true
+            newImageDescription = imageDescription
+        } else {
+            newImageDescription = ImageDescription(width: width, height: height, components: components)
+        }
+        
         if !newImageDescription.setBufferFrom(image: image) {
             throw SetImage.Error.couldNotSetBufferFromCGImage
         }
         
-        self.imageDescription?.release()
-        self.imageDescription = newImageDescription
+        if !hasKeptOldImageDescription {
+            self.imageDescription?.release()
+            self.imageDescription = newImageDescription
+        }
         
-        self.floatingImageDescription?.release()
-        self.floatingImageDescription = newImageDescription.toFloatingImageDescription()
+        if let floatingImageDescription, hasKeptOldImageDescription {
+            newImageDescription.toFloatingImageDescription(writingTo: floatingImageDescription)
+        } else {
+            self.floatingImageDescription?.release()
+            self.floatingImageDescription = newImageDescription.toFloatingImageDescription()
+        }
         
-        self.resultImageDescription?.release()
-        let newResultImageDescription = ImageDescription(width: image.width, height: image.height, components: 4)
-        newResultImageDescription.buffer.update(repeating: 255, count: newResultImageDescription.count)
-        self.resultImageDescription = newResultImageDescription
+        if !hasKeptOldImageDescription {
+            self.resultImageDescription?.release()
+            let newResultImageDescription = ImageDescription(width: image.width, height: image.height, components: 4)
+            newResultImageDescription.buffer.update(repeating: 255, count: newResultImageDescription.count)
+            self.resultImageDescription = newResultImageDescription
+        }
     }
     
     public func generateOriginalImage() throws -> CGImage {

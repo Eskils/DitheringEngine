@@ -163,6 +163,16 @@ extension GenericImageDescription where Color == UInt8 {
         return imageDescription
     }
     
+    /// Converts to FloatingImageDescription and writes to buffer
+    func toFloatingImageDescription(writingTo imageDescription: FloatingImageDescription) {
+       for i in 0..<size {
+           let color = getColorAt(index: i)
+           let floatingColor = SIMD3<Float>(color)
+           imageDescription.setColorAt(index: i, color: floatingColor)
+       }
+
+    }
+    
     /// Generates a CGImage from the image buffer data.
     func makeCGImage() throws -> CGImage {
         guard let component = Component(rawValue: components) else {
