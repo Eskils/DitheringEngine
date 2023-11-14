@@ -5,7 +5,7 @@
 //  Created by Eskil Gjerde Sviggum on 05/11/2023.
 //
 
-public enum Palette: String, CaseIterable {
+public enum Palette: String, CaseIterable, Codable {
     case bw
     case grayscale
     case quantizedColor

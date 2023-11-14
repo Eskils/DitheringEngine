@@ -7,6 +7,7 @@
 
 import Combine
 import CoreGraphics
+import UIKit
 
 public final class NoiseDitheringSettingsConfiguration: SettingsConfiguration {
     
@@ -29,5 +30,32 @@ public final class NoiseDitheringSettingsConfiguration: SettingsConfiguration {
             .eraseToAnyPublisher()
     }
     
+    
+}
+
+extension NoiseDitheringSettingsConfiguration: Codable {
+    
+    enum CodingKeys: String, CodingKey {
+        case noisePattern, performOnCPU
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        let data = noisePattern.value.flatMap { UIImage(cgImage: $0).pngData() }
+        
+        try container.encodeIfPresent(data, forKey: .noisePattern)
+        try container.encode(performOnCPU.value, forKey: .performOnCPU)
+    }
+    
+    public convenience init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let data = try container.decode(Data.self, forKey: .noisePattern)
+        let noisePattern = UIImage(data: data)?.cgImage
+        let performOnCPU = try container.decode(Bool.self, forKey: .performOnCPU)
+        
+        self.init(noisePattern: noisePattern, performOnCPU: performOnCPU)
+    }
     
 }

@@ -22,3 +22,25 @@ public final class DitherMethodSettingsConfiguration: SettingsConfiguration {
             .eraseToAnyPublisher()
     }
 }
+
+extension DitherMethodSettingsConfiguration: Codable {
+    
+    enum CodingKeys: String, CodingKey {
+        case ditherMethod
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+            
+        try container.encode(ditherMethod.value, forKey: .ditherMethod)
+    }
+    
+    public convenience init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let mode = try container.decode(Enum.self, forKey: .ditherMethod)
+        
+        self.init(mode: mode)
+    }
+    
+}

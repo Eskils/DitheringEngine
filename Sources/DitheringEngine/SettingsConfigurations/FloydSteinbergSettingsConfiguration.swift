@@ -33,3 +33,27 @@ public final class FloydSteinbergSettingsConfiguration: SettingsConfiguration {
     }
     
 }
+
+extension FloydSteinbergSettingsConfiguration: Codable {
+    
+    enum CodingKeys: String, CodingKey {
+        case direction, matrix
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+            
+        try container.encode(direction.value, forKey: .direction)
+        try container.encode(matrix.value, forKey: .matrix)
+    }
+    
+    public convenience init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let direction = try container.decode(FloydSteinbergDitheringDescription.self, forKey: .direction)
+        let matrix = try container.decode([Int].self, forKey: .matrix)
+        
+        self.init(direction: direction, matrix: matrix)
+    }
+    
+}

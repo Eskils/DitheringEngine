@@ -24,3 +24,25 @@ public final class Apple2SettingsConfiguration: SettingsConfiguration {
             .eraseToAnyPublisher()
     }
 }
+
+extension Apple2SettingsConfiguration: Codable {
+    
+    enum CodingKeys: String, CodingKey {
+        case mode
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+            
+        try container.encode(mode.value, forKey: .mode)
+    }
+    
+    public convenience init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let mode = try container.decode(Enum.self, forKey: .mode)
+        
+        self.init(mode: mode)
+    }
+    
+}
