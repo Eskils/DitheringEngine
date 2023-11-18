@@ -139,6 +139,14 @@ public class DitheringEngine {
         return try resultImageDescription.makePixelBuffer(invertedColorBuffer: invertedColorBuffer)
     }
     
+    func generateOriginalImagePixelBuffer(invertedColorBuffer: UnsafeMutablePointer<UInt8>) throws -> CVPixelBuffer {
+        guard let imageDescription else {
+            throw Error.noImageDescription
+        }
+        
+        return try imageDescription.makePixelBuffer(invertedColorBuffer: invertedColorBuffer)
+    }
+    
 }
 
 extension DitheringEngine {
@@ -166,9 +174,9 @@ extension DitheringEngine {
 
 extension DitheringEngine {
     
-    private func performDithering(usingMethod method: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherSettings: SettingsConfiguration, withPaletteSettings paletteSettings: SettingsConfiguration, imageDescription: ImageDescription, floatingImageDescription: FloatingImageDescription, resultImageDescription: ImageDescription) {
+    private func performDithering(usingMethod method: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherSettings: SettingsConfiguration, withPaletteSettings paletteSettings: SettingsConfiguration, imageDescription: ImageDescription, floatingImageDescription: FloatingImageDescription, resultImageDescription: ImageDescription, byteColorCache: ByteByteColorCache?, floatingColorCache: FloatByteColorCache?) {
         let lut = palette.lut(fromPalettes: palettes, settings: paletteSettings)
-        let ditherMethods = DitherMethods(imageDescription: imageDescription, resultImageDescription: resultImageDescription, floatingImageDescription: floatingImageDescription, seed: seed, orderedDitheringMetal: metalOrderedDithering)
+        let ditherMethods = DitherMethods(imageDescription: imageDescription, resultImageDescription: resultImageDescription, floatingImageDescription: floatingImageDescription, seed: seed, orderedDitheringMetal: metalOrderedDithering, colorMatchCache: byteColorCache, floatingColorMatchCache: floatingColorCache)
         method.run(withDitherMethods: ditherMethods, lut: lut, settings: ditherSettings)
     }
     
@@ -188,13 +196,15 @@ extension DitheringEngine {
             withPaletteSettings: paletteSettings,
             imageDescription: imageDescription,
             floatingImageDescription: floatingImageDescription,
-            resultImageDescription: resultImageDescription
+            resultImageDescription: resultImageDescription,
+            byteColorCache: nil,
+            floatingColorCache: nil
         )
         
         return try generateResultImage()
     }
     
-    func ditherIntoPixelBuffer(usingMethod method: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherSettings: SettingsConfiguration, withPaletteSettings paletteSettings: SettingsConfiguration, invertedColorBuffer: UnsafeMutablePointer<UInt8>) throws -> CVPixelBuffer {
+    func ditherIntoPixelBuffer(usingMethod method: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherSettings: SettingsConfiguration, withPaletteSettings paletteSettings: SettingsConfiguration, invertedColorBuffer: UnsafeMutablePointer<UInt8>, byteColorCache: ByteByteColorCache?, floatingColorCache: FloatByteColorCache?) throws -> CVPixelBuffer {
         guard
             let imageDescription,
             let floatingImageDescription,
@@ -203,6 +213,8 @@ extension DitheringEngine {
             return try generateResultPixelBuffer(invertedColorBuffer: invertedColorBuffer)
         }
         
+        resultImageDescription.buffer.update(repeating: 255, count: resultImageDescription.count)
+        
         performDithering(
             usingMethod: method,
             andPalette: palette,
@@ -210,7 +222,9 @@ extension DitheringEngine {
             withPaletteSettings: paletteSettings,
             imageDescription: imageDescription,
             floatingImageDescription: floatingImageDescription,
-            resultImageDescription: resultImageDescription
+            resultImageDescription: resultImageDescription,
+            byteColorCache: byteColorCache,
+            floatingColorCache: floatingColorCache
         )
         
         return try generateResultPixelBuffer(invertedColorBuffer: invertedColorBuffer)

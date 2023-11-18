@@ -36,7 +36,7 @@ final class GenericImageDescription<Color: ImageColor> {
     /// Pointer to the image bytes
     let buffer: UnsafeMutablePointer<Color>
     
-    private let getterBuffer = UnsafeMutablePointer<Color>.allocate(capacity: 3)
+    private let getterBuffer = UnsafeMutablePointer<Color>.allocate(capacity: 4)
     
     private var isReleased: Bool = false
     
@@ -116,14 +116,11 @@ extension GenericImageDescription {
         }
         
         
-        getterBuffer.update(from: buffer.advanced(by: components * i), count: 3)
-        let color = UnsafeRawPointer(getterBuffer)
-            .assumingMemoryBound(to: SIMD3<Color>.self)
-            .pointee
+        let index = components * i
         
-        let correctFormatColor = color//handlePixelOrderingTransform(forColor: color)
-
-        return correctFormatColor
+        return SIMD3(buffer[index + 0],
+                     buffer[index + 1],
+                     buffer[index + 2])
     }
     
     func setColorAt(index i: Int, color: SIMD3<Color>) {
@@ -131,12 +128,11 @@ extension GenericImageDescription {
             return
         }
         
-        var correctFormatColor = color//handlePixelOrderingTransform(forColor: color)
-        withUnsafeBytes(of: &correctFormatColor) { bufferPointer in
-            let pointer = bufferPointer.baseAddress!.assumingMemoryBound(to: Color.self)
-            buffer.advanced(by: components * i).update(from: pointer, count: 3)
-        }
+        let index = components * i
         
+        buffer[index + 0] = color.x
+        buffer[index + 1] = color.y
+        buffer[index + 2] = color.z
     }
     
     private func handlePixelOrderingTransform(forColor color: SIMD3<Color>) -> SIMD3<Color> {
@@ -252,8 +248,12 @@ extension GenericImageDescription where Color == UInt8 {
     /// Generates a CVPixelBuffer from the image buffer data.
     func makePixelBuffer(invertedColorBuffer: UnsafeMutablePointer<Color>) throws -> CVPixelBuffer {
         var pixelBuffer: CVPixelBuffer?
-        let attrs = [kCVPixelBufferCGImageCompatibilityKey: kCFBooleanTrue,
-             kCVPixelBufferCGBitmapContextCompatibilityKey: kCFBooleanTrue] as CFDictionary
+        let attrs = [
+            kCVPixelBufferCGImageCompatibilityKey: true,
+            kCVPixelBufferCGBitmapContextCompatibilityKey: false,
+            kCVPixelBufferWidthKey: width,
+            kCVPixelBufferHeightKey: height
+        ] as CFDictionary
         
         for i in 0..<count {
             let r = buffer[4 * i + 0]

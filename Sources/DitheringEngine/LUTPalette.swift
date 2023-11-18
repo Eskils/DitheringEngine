@@ -5,6 +5,8 @@
 //  Created by Eskil Gjerde Sviggum on 02/12/2022.
 //
 
+import Foundation
+
 public struct LUTPalette<Color: ImageColor> {
     
     let type: PaletteType
@@ -34,16 +36,24 @@ public struct LUTPalette<Color: ImageColor> {
         }
     }
     
-    private func pickColorFrom<T: ImageColor>(lutCollection: LUTCollection<Color>, basedOn color: SIMD3<T>) -> SIMD3<Color> {
-        lutCollection.closestColor(to: color)
+    private func pickColorFrom<T: ImageColor>(lutCollection: LUTCollection<Color>, basedOn color: SIMD3<T>, cache: ClosestColorCache<T, Color>?) -> SIMD3<Color> {
+        if let cache, let colorMatch = cache.getPaletteColor(for: color) {
+            return colorMatch
+        }
+        
+        let colorMatch = lutCollection.closestColor(to: color)
+        
+        cache?.register(paletteColor: colorMatch, asAMatchTo: color)
+        
+        return colorMatch
     }
     
-    public func pickColor<T: ImageColor>(basedOn color: SIMD3<T>) -> SIMD3<Color> {
+    public func pickColor<T: ImageColor>(basedOn color: SIMD3<T>, cache: ClosestColorCache<T, Color>? = nil) -> SIMD3<Color> {
         switch type {
         case .lut(let lut):
             return pickColorFrom(lut: lut, basedOn: color)
         case .lutCollection(let lutCollection):
-            return pickColorFrom(lutCollection: lutCollection, basedOn: color)
+            return pickColorFrom(lutCollection: lutCollection, basedOn: color, cache: cache)
         }
     }
     
@@ -119,4 +129,76 @@ extension LUTPalette {
         case lut(LUT<Color>)
         case lutCollection(LUTCollection<Color>)
     }
+}
+
+public typealias ByteByteColorCache = ClosestColorCache<UInt8, UInt8>
+public typealias FloatByteColorCache = ClosestColorCache<Float, UInt8>
+public class ClosestColorCache<InputColor: ImageColor, PaletteColor: ImageColor> {
+    
+    private let size = 256
+    private let sideSize = 256 * 256
+    
+    private let colorMap: UnsafeMutablePointer<Optional<SIMD3<PaletteColor>>>
+    
+    /// Specifies if the colorMap is a reference. In which case, should not be deallocated
+    private let isReference: Bool
+    
+    public init() {
+        let count = 256 * 256 * 256
+        let pointer = UnsafeMutablePointer<Optional<SIMD3<PaletteColor>>>.allocate(capacity: count)
+        pointer.update(repeating: nil, count: count)
+        
+        self.colorMap = pointer
+        self.isReference = false
+    }
+    
+    private init(colorMap: UnsafeMutablePointer<Optional<SIMD3<PaletteColor>>>, isReference: Bool) {
+        self.colorMap = colorMap
+        self.isReference = isReference
+    }
+    
+    public static func populateWitColors(fromLUT collection: LUTCollection<PaletteColor>) -> ClosestColorCache<InputColor, PaletteColor> {
+        let size = 256
+        let sideSize = size * size
+        let count = size * sideSize
+        
+        let colorMap = UnsafeMutablePointer<Optional<SIMD3<PaletteColor>>>.allocate(capacity: count)
+        
+        for r in 0..<size {
+            for g in 0..<size {
+                for b in 0..<size {
+                    let index = sideSize * r + size * g + b
+                    let paletteColor = collection.closestColor(to: SIMD3<UInt8>(x: UInt8(r), y: UInt8(g), z: UInt8(b)))
+                    colorMap[index] = paletteColor
+                }
+            }
+        }
+        
+        return ClosestColorCache(colorMap: colorMap, isReference: false)
+    }
+    
+    public func register(paletteColor: SIMD3<PaletteColor>, asAMatchTo color: SIMD3<InputColor>) {
+        let index = index(forColor: color)
+        colorMap[index] = paletteColor
+    }
+    
+    public func getPaletteColor(for color: SIMD3<InputColor>) -> SIMD3<PaletteColor>? {
+        let index = index(forColor: color)
+        return colorMap[index]
+    }
+    
+    private func index(forColor color: SIMD3<InputColor>) -> Int {
+        return sideSize * color.x.toInt() + size * color.y.toInt() + color.z.toInt()
+    }
+    
+    public func toFloatingWithoutCopy() -> ClosestColorCache<Float, PaletteColor> where InputColor == UInt8 {
+        ClosestColorCache<Float, PaletteColor>(colorMap: self.colorMap, isReference: true)
+    }
+    
+    deinit {
+        if !isReference {
+            colorMap.deallocate()
+        }
+    }
+    
 }

@@ -12,16 +12,19 @@ public protocol ImageColor: SIMDScalar, Decodable, Encodable, Hashable {
     
     func toFloat() -> Float
     func toUInt8() -> UInt8
+    func toInt() -> Int
 }
 
 extension UInt8: ImageColor {
     public func toFloat() -> Float { Float(self) }
     public func toUInt8() -> UInt8 { self }
+    public func toInt() -> Int { Int(self) }
 }
 
 extension Float: ImageColor {
     public func toFloat() -> Float { self }
     public func toUInt8() -> UInt8 { UInt8(self) }
+    public func toInt() -> Int { Int(self) }
 }
 
 extension SIMD3 where Scalar: ImageColor {

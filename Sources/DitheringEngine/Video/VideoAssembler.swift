@@ -36,6 +36,8 @@ class VideoAssembler {
         self.assetWriterInput = AVAssetWriterInput(mediaType: .video, outputSettings: assetWriterSettings)
         self.assetWriterAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: assetWriterInput, sourcePixelBufferAttributes: nil)
         
+        assetWriterInput.expectsMediaDataInRealTime = true
+        
         self.framesURL = outputURL.deletingLastPathComponent().appendingPathComponent("Frames")
         
         if emitFrames {
@@ -69,8 +71,6 @@ class VideoAssembler {
         
         while !assetWriterInput.isReadyForMoreMediaData {}
         self.assetWriterAdaptor.append(pixelBuffer, withPresentationTime: frametime)
-        
-        print("Finished processing frame \(framecount)")
     }
     
     let context = CIContext()
@@ -85,6 +85,7 @@ class VideoAssembler {
     }
     
     func generateVideo() async {
+        while !assetWriterInput.isReadyForMoreMediaData {}
         assetWriterInput.markAsFinished()
         await assetWriter.finishWriting()
     }

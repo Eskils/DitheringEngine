@@ -20,8 +20,6 @@ class AppState: ObservableObject {
     @Published
     var originalVideo: VideoDescription?
     
-    var isInVideoMode: Bool = false
-    
     @Published
     var isRunning: Bool = false
 }

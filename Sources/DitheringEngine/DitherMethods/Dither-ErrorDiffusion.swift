@@ -24,7 +24,7 @@ extension DitherMethods {
                 let i = customization.index(forX: x, y: y, width: width, andHeight: height)
                 
                 let colorIn = imageDescription.getColorAt(index: i)
-                let color = palette.pickColor(basedOn: colorIn)
+                let color = palette.pickColor(basedOn: colorIn, cache: floatingColorMatchCache)
                 let color_f = SIMD3<Float>(color)
                 resultImageDescription.setColorAt(index: i, color: color)
                 

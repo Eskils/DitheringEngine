@@ -28,6 +28,9 @@ extension ToolbarView {
         @Published
         var additionalDitherMethodSetting: PaletteSettingsConfigurationWithView = EmptyPaletteSettingsConfigurationWithView()
         
+        @Published
+        var isInVideoMode: Bool = false
+        
         init(ditheringEngine: DitheringEngine, videoDitheringEngine: VideoDitheringEngine, appState: AppState) {
             self.ditheringEngine = ditheringEngine
             self.videoDitheringEngine = videoDitheringEngine
@@ -42,7 +45,7 @@ extension ToolbarView {
                     let image = try ditheringEngine.generateOriginalImage()
                     DispatchQueue.main.async {
                         self.appState.originalImage = image
-                        self.appState.isInVideoMode = false
+                        self.isInVideoMode = false
                         self.performDithering()
                     }
                 } catch {
@@ -67,7 +70,7 @@ extension ToolbarView {
                         DispatchQueue.main.async {
                             self.appState.originalImage = previewImage
                             self.appState.originalVideo = originalVideo
-                            self.appState.isInVideoMode = true
+                            self.isInVideoMode = true
                             self.performDithering()
                         }
                     } catch {
@@ -109,7 +112,7 @@ extension ToolbarView {
             }
         }
         
-        func ditherVideo() {
+        func ditherVideo(name: String, progressHandler: @escaping (Float) -> Void, completionHandler: @escaping (Result<URL, Error>) -> Void) {
             let additionalPalleteSettings = additionalPaletteSelectionSetting
             let additionalDitherMethodSetting = additionalDitherMethodSetting
             
@@ -125,27 +128,26 @@ extension ToolbarView {
                     let ditherMethod = ditherMethodSetting.ditherMethod.value
                     
                     if var originalVideo = appState.originalVideo {
-                        // FileManager.default.temporaryDirectory.absoluteURL
                         let baseURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.absoluteURL
-                        let outputURL = baseURL.appendingPathComponent("DitheredVideo.mp4")
+                        let outputURL = baseURL.appendingPathComponent(name)
                         if FileManager.default.fileExists(atPath: outputURL.path) {
                             try FileManager.default.removeItem(at: outputURL)
                         }
                         print("Output URL: ", outputURL)
-//                        Task {
-//                            try await originalVideo.resizingVideo(toSize: CGSize(width: 320, height: 1), outputURL: resizeURL)
-//                            let resizedVideo = VideoDescription(url: resizeURL)
-//                            print("Resized video")
-                            originalVideo.renderSize = CGSize(width: 320, height: 1)
-                            videoDitheringEngine.dither(videoDescription: originalVideo, toPalette: palette, usingDitherMethod: ditherMethod, withDitherMethodSettings: additionalDitherMethodSetting.settingsConfiguration, andPaletteSettings: additionalPalleteSettings.settingsConfiguration, outputURL: outputURL) { error in
-                                timer.invalidate()
-                                DispatchQueue.main.async {
-                                    self.appState.isRunning = false
-                                    
+                        
+                        originalVideo.renderSize = CGSize(width: 320, height: 1)
+                        videoDitheringEngine.dither(videoDescription: originalVideo, toPalette: palette, usingDitherMethod: ditherMethod, withDitherMethodSettings: additionalDitherMethodSetting.settingsConfiguration, andPaletteSettings: additionalPalleteSettings.settingsConfiguration, outputURL: outputURL, progressHandler: progressHandler) { error in
+                            timer.invalidate()
+                            DispatchQueue.main.async {
+                                self.appState.isRunning = false
+                                if let error {
                                     print("Finished dithering video with error: \(String(describing: error))")
+                                    completionHandler(.failure(error))
+                                } else {
+                                    completionHandler(.success(outputURL))
                                 }
                             }
-//                        }
+                        }
                     }
                     
                 } catch {
@@ -154,7 +156,6 @@ extension ToolbarView {
                         self.appState.isRunning = false
                     }
                     print("Failed dithering with error: ", error)
-                    //assertionFailure()
                 }
             }
         }
@@ -192,7 +193,6 @@ extension ToolbarView {
                         self.appState.isRunning = false
                     }
                     print("Failed dithering with error: ", error)
-                    //assertionFailure()
                 }
             }
         }

@@ -17,7 +17,7 @@ extension DitherMethods {
                 
                 let newColor = (colorIn + thresholdMultiplier * SIMD3(repeating:  threshold))
                 let clampedNewColor = newColor.rounded(.toNearestOrAwayFromZero)
-                let color = palette.pickColor(basedOn: clampedNewColor)
+                let color = palette.pickColor(basedOn: clampedNewColor, cache: floatingColorMatchCache)
                 
                 resultImageDescription.setColorAt(index: i, color: color)
             }

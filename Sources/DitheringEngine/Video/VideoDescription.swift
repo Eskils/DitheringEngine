@@ -30,6 +30,18 @@ public struct VideoDescription {
         return videoTrack.nominalFrameRate
     }
     
+    var duration: TimeInterval {
+        asset.duration.seconds
+    }
+    
+    func numberOfFrames(overrideFramerate: Float? = nil) -> Int? {
+        guard let framerate = overrideFramerate ?? self.framerate else {
+            return nil
+        }
+        
+        return Int(framerate * Float(duration))
+    }
+    
     var size: CGSize? {
         guard let videoTrack = asset.tracks(withMediaType: .video).first else {
             return nil
@@ -52,7 +64,7 @@ public struct VideoDescription {
         }
     }
     
-    func getFrames(frameRateCap: Float? = nil, handler: (CVPixelBuffer) throws -> Void) throws {
+    func getFrames(frameRateCap: Float? = nil) throws -> GetFramesHandler {
         let assetReader: AVAssetReader
         do {
             assetReader = try AVAssetReader(asset: asset)
@@ -66,9 +78,11 @@ public struct VideoDescription {
             throw VideoDescriptionError.assetContainsNoTrackForVideo
         }
         
-        let frameRate = videoTrack.nominalFrameRate
+        let frameRate = videoTrack.nominalFrameRate.rounded()
         let expectedFrameRate: Float = frameRateCap ?? frameRate
         let framesToInclude = Int(frameRate / expectedFrameRate)
+        
+        print(frameRate, expectedFrameRate, framesToInclude)
         
         let trackReaderOutput = AVAssetReaderTrackOutput(track: videoTrack, outputSettings: outputSettings)
         
@@ -79,28 +93,7 @@ public struct VideoDescription {
         assetReader.add(trackReaderOutput)
         assetReader.startReading()
         
-        var sampleIndex = 0
-        while let sampleBuffer = trackReaderOutput.copyNextSampleBuffer() {
-            if sampleIndex % framesToInclude != 0 {
-                sampleIndex += 1
-                continue
-            }
-            
-            if let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) {
-                do {
-                    try handler(imageBuffer)
-                } catch {
-                    assetReader.cancelReading()
-                    throw error
-                }
-                
-                sampleIndex += 1
-            }
-        }
-        
-        if assetReader.status != .completed {
-            throw VideoDescriptionError.failedToReadAllFramesInVideo(status: assetReader.status.rawValue)
-        }
+        return GetFramesHandler(assetReader: assetReader, trackReaderOutput: trackReaderOutput, framesToInclude: framesToInclude)
     }
     
     public func resizingVideo(toSize scaledSize: CGSize, outputURL: URL) async throws {
@@ -151,6 +144,40 @@ public struct VideoDescription {
         case cannotAddTrackReaderOutput
         case failedToReadAllFramesInVideo(status: Int)
         case cannotMakeExporter
+    }
+    
+    class GetFramesHandler {
+        
+        private let assetReader: AVAssetReader
+        private let trackReaderOutput: AVAssetReaderTrackOutput
+        private let framesToInclude: Int
+        var sampleIndex = 0
+        
+        init(assetReader: AVAssetReader, trackReaderOutput: AVAssetReaderTrackOutput, framesToInclude: Int) {
+            self.assetReader = assetReader
+            self.trackReaderOutput = trackReaderOutput
+            self.framesToInclude = framesToInclude
+        }
+        
+        func next() -> CVPixelBuffer? {
+            while let sampleBuffer = trackReaderOutput.copyNextSampleBuffer() {
+                if sampleIndex % framesToInclude != 0 {
+                    sampleIndex += 1
+                    continue
+                }
+                
+                if let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) {
+                    sampleIndex += 1
+                    return imageBuffer
+                }
+            }
+            
+            return nil
+        }
+        
+        func cancel() {
+            assetReader.cancelReading()
+        }
     }
 }
 
