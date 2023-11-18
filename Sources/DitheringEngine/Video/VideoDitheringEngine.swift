@@ -11,8 +11,6 @@ import CoreImage.CIFilterBuiltins
 
 public struct VideoDitheringEngine {
     
-    let ditheringEngine: DitheringEngine
-    
     private let frameRate: Float = 30
     
     private let queue = DispatchQueue(label: "com.skillbreak.DitheringEngine", qos: .default, attributes: .concurrent, autoreleaseFrequency: .workItem, target: nil)
@@ -20,11 +18,9 @@ public struct VideoDitheringEngine {
     /// Number of frames to process concurrently (per batch)
     private let workItems = 5
     
-    public init(ditheringEngine: DitheringEngine? = nil) {
-        self.ditheringEngine = ditheringEngine ?? DitheringEngine()
-    }
+    public init() {}
     
-    public func dither(video url: URL, resizingTo size: CGSize?, toPalette palette: Palette, usingDitherMethod ditherMethod: DitherMethod, withDitherMethodSettings ditherMethodSettings: SettingsConfiguration, andPaletteSettings paletteSettings: SettingsConfiguration, outputURL: URL, progressHandler: ((Float) -> Void)? = nil, completionHandler: @escaping (Error?) -> Void) {
+    public func dither(video url: URL, resizingTo size: CGSize?, usingMethod ditherMethod: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherMethodSettings: SettingsConfiguration, andPaletteSettings paletteSettings: SettingsConfiguration, outputURL: URL, progressHandler: ((Float) -> Void)? = nil, completionHandler: @escaping (Error?) -> Void) {
         var videoDescription = VideoDescription(url: url)
         
         if let size {
@@ -33,8 +29,8 @@ public struct VideoDitheringEngine {
         
         dither(
             videoDescription: videoDescription,
-            toPalette: palette,
-            usingDitherMethod: ditherMethod,
+            usingMethod: ditherMethod,
+            andPalette: palette,
             withDitherMethodSettings: ditherMethodSettings,
             andPaletteSettings: paletteSettings,
             outputURL: outputURL,
@@ -43,7 +39,7 @@ public struct VideoDitheringEngine {
         )
     }
     
-    public func dither(videoDescription: VideoDescription, toPalette palette: Palette, usingDitherMethod ditherMethod: DitherMethod, withDitherMethodSettings ditherMethodSettings: SettingsConfiguration, andPaletteSettings paletteSettings: SettingsConfiguration, outputURL: URL, progressHandler: ((Float) -> Void)? = nil, completionHandler: @escaping (Error?) -> Void) {
+    public func dither(videoDescription: VideoDescription, usingMethod ditherMethod: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherMethodSettings: SettingsConfiguration, andPaletteSettings paletteSettings: SettingsConfiguration, outputURL: URL, progressHandler: ((Float) -> Void)? = nil, completionHandler: @escaping (Error?) -> Void) {
         
         guard 
             let originalSize = videoDescription.size
@@ -75,7 +71,7 @@ public struct VideoDitheringEngine {
         let numberOfFrames = videoDescription.numberOfFrames(overrideFramerate: frameRate) ?? 0
         let numberOfBatches = numberOfFrames / workItems
         
-        let lutPalette = palette.lut(fromPalettes: ditheringEngine.palettes, settings: paletteSettings)
+        let lutPalette = palette.lut(fromPalettes: Palettes(), settings: paletteSettings)
         let byteColorCache: ByteByteColorCache?
         let floatingColorCache: FloatByteColorCache?
         if case .lutCollection(let collection) = lutPalette.type {

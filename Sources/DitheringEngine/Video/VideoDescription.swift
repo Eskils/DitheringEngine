@@ -96,48 +96,6 @@ public struct VideoDescription {
         return GetFramesHandler(assetReader: assetReader, trackReaderOutput: trackReaderOutput, framesToInclude: framesToInclude)
     }
     
-    public func resizingVideo(toSize scaledSize: CGSize, outputURL: URL) async throws {
-        guard let size else {
-            throw VideoDescriptionError.assetContainsNoTrackForVideo
-        }
-        
-        let scale = scaledSize.width / size.width
-        
-        let scaleComposition = AVMutableVideoComposition(asset: asset, applyingCIFiltersWithHandler: {request in
-          
-            guard let cropFilter = CIFilter(name: "CILanczosScaleTransform") else {
-                assertionFailure()
-                request.finish(with: request.sourceImage, context: nil)
-                return
-            }
-            
-            cropFilter.setValue(request.sourceImage, forKey: kCIInputImageKey)
-            cropFilter.setValue(scale, forKey: kCIInputScaleKey)
-              
-              
-            guard let outputImage = cropFilter.outputImage else {
-                assertionFailure()
-                request.finish(with: request.sourceImage, context: nil)
-                return
-            }
-
-            request.finish(with: outputImage, context: nil)
-        })
-        
-        scaleComposition.renderSize = CGSize(width: scaledSize.width, height: scale * size.height);
-        scaleComposition.frameDuration = CMTimeMake(value: 1, timescale: 30);
-        scaleComposition.renderScale = 1.0;
-
-        guard let exporter = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else {
-            throw VideoDescriptionError.cannotMakeExporter
-        }
-        exporter.videoComposition = scaleComposition
-        exporter.outputURL = outputURL
-        exporter.outputFileType = .mp4
-        
-        await exporter.export()
-    }
-    
     enum VideoDescriptionError: Error {
         case cannotMakeAssetReader(Error)
         case assetContainsNoTrackForVideo

@@ -136,7 +136,7 @@ extension ToolbarView {
                         print("Output URL: ", outputURL)
                         
                         originalVideo.renderSize = CGSize(width: 320, height: 1)
-                        videoDitheringEngine.dither(videoDescription: originalVideo, toPalette: palette, usingDitherMethod: ditherMethod, withDitherMethodSettings: additionalDitherMethodSetting.settingsConfiguration, andPaletteSettings: additionalPalleteSettings.settingsConfiguration, outputURL: outputURL, progressHandler: progressHandler) { error in
+                        videoDitheringEngine.dither(videoDescription: originalVideo, usingMethod: ditherMethod, andPalette: palette, withDitherMethodSettings: additionalDitherMethodSetting.settingsConfiguration, andPaletteSettings: additionalPalleteSettings.settingsConfiguration, outputURL: outputURL, progressHandler: progressHandler) { error in
                             timer.invalidate()
                             DispatchQueue.main.async {
                                 self.appState.isRunning = false

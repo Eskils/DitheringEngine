@@ -1,6 +1,7 @@
+![DitheringEngine](Documentation/Resources/DitheringEngineLogo.png)
 # DitheringEngine
 
-Framework for iOS and Mac Catalyst to dither images.
+Framework for iOS and Mac Catalyst to dither images and videos.
 
 Dithering is the process of adding noise to an image in order for us to perceive the image more colorful.
 
@@ -8,11 +9,11 @@ Dithering is the process of adding noise to an image in order for us to perceive
 
 > This image has only four colors: black, white, cyan, and magenta.
 
-Check out the [demo application](./Documentation/Demo/) for iOS and macOS.
+Check out the [demo application](./Documentation/Demo/) for iPadOS and macOS.
 
 ## Usage
 
-The engine works on CGImages.
+The engine works on CGImages and video URLs/AVAsset.
 
 Supported dithering methods are: 
   - Threshold
@@ -33,6 +34,7 @@ Supported out of the box palettes are:
   - Game Boy
   - CGA 
 
+### Dithering images
 Example usage: 
 ```swift
 // Create an instance of DitheringEngine
@@ -45,6 +47,28 @@ let cgImage = try ditheringEngine.dither(
     andPalette: .quantizedColor,
     withDitherMethodSettings: FloydSteinbergSettingsConfiguration(direction: .leftToRight),
     withPaletteSettings: QuantizedColorSettingsConfiguration(bits: 5)
+)
+```
+
+### Dithering videos
+Example usage: 
+```swift
+// Create an instance of VideoDitheringEngine
+let videoDitheringEngine = VideoDitheringEngine()
+// Create a video description
+let videoDescription = VideoDescription(url: inputVideoURL)
+// Set preferred output size.
+videoDescription.renderSize = CGSize(width: 320, height: 568)
+// Dither to quantized color with 5 bits using Floyd-Steinberg.
+videoDitheringEngine.dither(
+    videoDescription: videoDescription,  
+    usingMethod: .floydSteinberg, 
+    andPalette: .quantizedColor,
+    withDitherMethodSettings: FloydSteinbergSettingsConfiguration(direction: .leftToRight), 
+    andPaletteSettings: QuantizedColorSettingsConfiguration(bits: 5), 
+    outputURL: outputURL, 
+    progressHandler: progressHandler,   // Optional block to receive progress.
+    completionHandler: completionHandler
 )
 ```
 
@@ -463,4 +487,57 @@ try ditheringEngine.dither(
     withDitherMethodSettings: EmptyPaletteSettingsConfiguration(),
     withPaletteSettings: CustomPaletteSettingsConfiguration(palette: palette)
 )
+```
+
+## Dithering videos (Beta)
+
+In addition to `DitheringEngine` dithering images, `VideoDitheringEngine` exists to dither videos. The VideoDitheringEngine works by applying a palette and dither method to every frame in the video. You may also choose to resize the video as part of this process.
+
+![VideoDitheringEngine works by applying a palette and dither method to every frame in the video](Documentation/Resources/VideoDitheringEngineFigure.png#gh-light-mode-only)
+
+![VideoDitheringEngine works by applying a palette and dither method to every frame in the video](Documentation/Resources/VideoDitheringEngineFigureDark.png#gh-dark-mode-only)
+
+Example usage: 
+```swift
+// Create an instance of VideoDitheringEngine
+let videoDitheringEngine = VideoDitheringEngine()
+// Create a video description
+let videoDescription = VideoDescription(url: inputVideoURL)
+// Set preferred output size.
+videoDescription.renderSize = CGSize(width: 320, height: 568)
+// Dither to quantized color with 5 bits using Floyd-Steinberg.
+videoDitheringEngine.dither(
+    videoDescription: videoDescription,  
+    usingMethod: .floydSteinberg, 
+    andPalette: .quantizedColor,
+    withDitherMethodSettings: FloydSteinbergSettingsConfiguration(direction: .leftToRight), 
+    andPaletteSettings: QuantizedColorSettingsConfiguration(bits: 5), 
+    outputURL: outputURL, 
+    progressHandler: progressHandler,
+    completionHandler: completionHandler
+)
+```
+
+Some key takeaways:
+- Using an ordered dither method is faster, and will give the best result as the pattern will not “move” (like static noise).
+- The final video has a framerate of 30. Using a video with less than 30 framerate as input is not supported (yet).
+- Audio is not supported (yet)
+
+### Video Description
+
+You set the video you want to use as input through the `VideoDescription` type. This is a convenient wrapper around `AVAsset` and lets you set the preferred output size.
+
+![A VideoDescription can be made from an AVAsset, and is what you pass to VideoDitheringEngine in order to dither a video.](Documentation/Resources/VideoDitheringEngineProcedureMap.png#gh-light-mode-only)
+![A VideoDescription can be made from an AVAsset, and is what you pass to VideoDitheringEngine in order to dither a video.](Documentation/Resources/VideoDitheringEngineProcedureMapDark.png#gh-dark-mode-only)
+
+**Properites**
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| renderSize | CGSize? | nil | Specifies the size for which to render the final dithered video. |
+
+**Methods**
+
+```swift
+/// Reads the first frame in the video as an image.
+func getPreviewImage() async throws -> CGImage
 ```
