@@ -11,9 +11,25 @@ import DitheringEngine
 
 struct ToolbarView: View {
     
+    @State var selection: MediaFormat?
     @State var selectedImage: UIImage? = nil
     @State var showImagePicker = false
     @State var showFilePicker = false
+    
+    @State var exportURL: URL?
+    @State var showFileExporter = false
+    
+    @State var error: Error?
+    @State var showErrorAlert = false
+    
+    @State var isExporting = false
+    @State var exportProgress: Float = 0
+    
+    let percentFormat = {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .percent
+        return numberFormatter
+    }()
     
     @State var ditherMethod: DitherMethod = .none
     
@@ -21,17 +37,23 @@ struct ToolbarView: View {
     var viewModel: ViewModel
     
     @MainActor
-    init(ditheringEngine: DitheringEngine, appState: AppState) {
-        self._viewModel = ObservedObject(
-            wrappedValue: ViewModel(ditheringEngine: ditheringEngine, appState: appState)
-        )
+    init(ditheringEngine: DitheringEngine, videoDitheringEngine: VideoDitheringEngine, appState: AppState) {
+        self.viewModel = ViewModel(ditheringEngine: ditheringEngine, videoDitheringEngine: videoDitheringEngine, appState: appState)
     }
     
     var body: some View {
         VStack(spacing: 8) {
+            Image(.ditheringEngineLogo)
+                .resizable()
+                .frame(width: 100, height: 100)
+            
             Text("Dithering Engine")
                 .font(.title)
                 .bold()
+            
+            Text("Choose an image or a video to dither")
+                .font(.body)
+                .foregroundStyle(Color(UIColor.secondaryLabel))
             
             VStack(spacing: 16) {
                 Button(action: didPressChooseImage) {
@@ -45,8 +67,15 @@ struct ToolbarView: View {
                 }
                 
                 Button { didPressExport() } label: {
-                    Label(title: { Text("Export dithered image") },
+                    Label(title: { Text(viewModel.isInVideoMode ? "Export dithered video" : "Export dithered image") },
                           icon: SF.square.and.arrow.up.swiftUIImage)
+                }
+                
+                if isExporting {
+                    HStack {
+                        ProgressView("Export progress", value: exportProgress)
+                        Text(percentFormat.string(for: exportProgress) ?? "--")
+                    }
                 }
             }
             
@@ -74,9 +103,17 @@ struct ToolbarView: View {
             
         }
         .padding(8)
-        .onChange(of: selectedImage ?? UIImage()) { didChoose(image: $0) }
-        .sheet(isPresented: $showImagePicker) { ImagePicker(image: $selectedImage) }
-        .sheet(isPresented: $showFilePicker) { DocumentPicker(image: $selectedImage) }
+        .onChange(of: selection) { didChoose(media: $0) }
+        .sheet(isPresented: $showImagePicker) { ImagePicker(selection: $selection) }
+        .sheet(isPresented: $showFilePicker) { DocumentPicker(selection: $selection) }
+        .sheet(isPresented: $showFileExporter) { DocumentExporter(exporting: exportURL) }
+        .alert("An error occured", isPresented: $showErrorAlert, actions: {
+            Button(action: {}) {
+                Text("Ok")
+            }
+        }, message: {
+            Text(error?.localizedDescription ?? "--")
+        })
         .onAppear(perform: didAppear)
         .onReceive(viewModel.ditherMethodSetting.settingsConfiguration.ditherMethod) { _ in viewModel.didChangeDitherMethod() }
         .onReceive(viewModel.paletteSelectionSetting.palette) { _ in viewModel.didChangePalette() }
@@ -99,12 +136,30 @@ struct ToolbarView: View {
     }
     
     func didAppear() {
-        self.selectedImage = UIImage(named: "Bergen")
+        guard let image = UIImage(named: "Bergen") else {
+            return
+        }
+        
+        self.selection = .image(image)
     }
     
     @MainActor
     func refreshDithering(sending uselessValue: Any) {
         viewModel.performDithering()
+    }
+    
+    @MainActor
+    func didChoose(media: MediaFormat?) {
+        guard let media else {
+            return
+        }
+        
+        switch media {
+        case .image(let image):
+            didChoose(image: image)
+        case .video(let videoURL):
+            viewModel.handleNew(video: videoURL)
+        }
     }
     
     @MainActor
@@ -118,6 +173,14 @@ struct ToolbarView: View {
     
     @MainActor
     func didPressExport() {
+        if viewModel.isInVideoMode {
+            exportVideo()
+        } else {
+            exportImage()
+        }
+    }
+    
+    private func exportImage() {
         guard
             let image = viewModel.appState.finalImage?.toUIImage(),
             let imageData = image.pngData()
@@ -125,7 +188,51 @@ struct ToolbarView: View {
             return
         }
         
-        share(data: imageData, name: "DitheredImage" + ".png")
+        do {
+            let url = try documentUrlForFile(withName: "DitheredImage.png", storing: imageData)
+            exportURL = url
+            DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) {
+                self.showFileExporter = true
+            }
+        } catch {
+            print("Could not export: ", error)
+            self.error = error
+            self.showErrorAlert = true
+        }
+        
+    }
+    
+    private func exportVideo() {
+        withAnimation {
+            self.isExporting = true
+        }
+        
+        viewModel.ditherVideo(
+            name: "DitheredVideo.mp4",
+            progressHandler: didProcessVideo(withProgress:),
+            completionHandler: didFinishProcessingVideo(withResult:)
+        )
+    }
+    
+    private func didProcessVideo(withProgress progress: Float) {
+        self.exportProgress = progress
+    }
+    
+    private func didFinishProcessingVideo(withResult result: Result<URL, Error>) {
+        withAnimation {
+            self.isExporting = false
+        }
+        
+        switch result {
+        case .success(let url):
+            exportURL = url
+            DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) {
+                self.showFileExporter = true
+            }
+        case .failure(let error):
+            self.error = error
+            self.showErrorAlert = true
+        }
     }
     
     func share(data: Data, name: String) {

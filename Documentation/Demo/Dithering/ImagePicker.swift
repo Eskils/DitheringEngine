@@ -11,11 +11,11 @@ import PhotosUI
 struct ImagePicker: UIViewControllerRepresentable {
     typealias UIViewControllerType = PHPickerViewController
     
-    @Binding var image: UIImage?
+    @Binding var selection: MediaFormat?
     
     func makeUIViewController(context: Context) -> PHPickerViewController {
         var config = PHPickerConfiguration()
-        config.filter = .images
+        config.filter = PHPickerFilter.any(of: [.images, .videos])
         
         let vc = PHPickerViewController(configuration: config)
         vc.delegate = context.coordinator
@@ -39,15 +39,32 @@ struct ImagePicker: UIViewControllerRepresentable {
             
             picker.dismiss(animated: true)
             
-            if let item = results.first?.itemProvider,
-               item.canLoadObject(ofClass: UIImage.self) {
-                
-                item.loadObject(ofClass: UIImage.self) { image, _ in
-                    self.imagePicker.image = image as? UIImage
+            if let item = results.first?.itemProvider {
+                if item.canLoadObject(ofClass: UIImage.self) {
+                    
+                    item.loadObject(ofClass: UIImage.self) { image, _ in
+                        if let image = image as? UIImage {
+                            self.imagePicker.selection = .image(image)
+                        } else {
+                            self.imagePicker.selection = nil
+                        }
+                    }
+                } else {
+                    item.loadFileRepresentation(forTypeIdentifier: UTType.movie.identifier) { url, error in
+                        let videoURL = FileManager.default.temporaryDirectory.appendingPathComponent("ImportedVideo.mp4")
+                        if let url,
+                           FileManager.default.fileExists(atPath: url.path),
+                           (try? FileManager.default.copyItem(at: url, to: videoURL)) != nil {
+                            self.imagePicker.selection = .video(videoURL)
+                        } else {
+                            print("Could not load video: \(String(describing: error))")
+                            self.imagePicker.selection = nil
+                        }
+                    }
                 }
                 
             } else {
-                self.imagePicker.image = nil
+                self.imagePicker.selection = nil
             }
             
         }

@@ -10,7 +10,7 @@ extension DitherMethods {
         for i in 0..<imageDescription.size {
             let colorIn = imageDescription.getColorAt(index: i)
             
-            let color = palette.pickColor(basedOn: colorIn)
+            let color = palette.pickColor(basedOn: colorIn, cache: colorMatchCache)
             resultImageDescription.setColorAt(index: i, color: color)
         }
     }

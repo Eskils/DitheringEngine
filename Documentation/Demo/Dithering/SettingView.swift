@@ -347,6 +347,8 @@ struct CustomImageSettingView: View {
     
     let description: CustomImageSettingViewDescription
     
+    @State var selection: MediaFormat?
+    
     @State
     private var patternImage: UIImage?
     
@@ -375,7 +377,7 @@ struct CustomImageSettingView: View {
 
         }
         .sheet(isPresented: $showPhotoPicker, content: {
-            ImagePicker(image: $patternImage)
+            ImagePicker(selection: $selection)
         })
         .fileImporter(isPresented: $showDocumentPicker, allowedContentTypes: [.image], onCompletion: { result in
             switch result {
@@ -397,6 +399,19 @@ struct CustomImageSettingView: View {
                 showDocumentPicker = true
             }
         }
+        .onChange(of: selection, perform: { mediaFormat in
+            guard let mediaFormat else {
+                return
+            }
+            
+            switch mediaFormat {
+            case .image(let image):
+                self.patternImage = image
+            case .video(_):
+                print("Videos are not supported as patterns")
+                break
+            }
+        })
         .onChange(of: patternImage, perform: { patternImage in
             guard 
                 let patternImage,

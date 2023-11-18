@@ -7,6 +7,7 @@
 
 import Combine
 import CoreGraphics
+import DitheringEngine
 
 class AppState: ObservableObject {
     
@@ -15,6 +16,9 @@ class AppState: ObservableObject {
     
     @Published
     var finalImage: CGImage?
+    
+    @Published
+    var originalVideo: VideoDescription?
     
     @Published
     var isRunning: Bool = false

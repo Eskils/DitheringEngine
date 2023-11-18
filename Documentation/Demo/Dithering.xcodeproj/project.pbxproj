@@ -22,6 +22,8 @@
 		7B99C2D529388FDB002B6BB7 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7B99C2D429388FDB002B6BB7 /* Preview Assets.xcassets */; };
 		7B99C2E229389020002B6BB7 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B99C2DD29389020002B6BB7 /* ImagePicker.swift */; };
 		7B99C2E72938916C002B6BB7 /* SafeSanFrancisco in Frameworks */ = {isa = PBXBuildFile; productRef = 7B99C2E62938916C002B6BB7 /* SafeSanFrancisco */; };
+		7BB6D52A2B0907FC00A21E2F /* DocumentExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BB6D5292B0907FC00A21E2F /* DocumentExporter.swift */; };
+		7BD2F5C22AFCFB540037709F /* MediaFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BD2F5C12AFCFB540037709F /* MediaFormat.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +42,8 @@
 		7B99C2D129388FDB002B6BB7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7B99C2D429388FDB002B6BB7 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		7B99C2DD29389020002B6BB7 /* ImagePicker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
+		7BB6D5292B0907FC00A21E2F /* DocumentExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentExporter.swift; sourceTree = "<group>"; };
+		7BD2F5C12AFCFB540037709F /* MediaFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaFormat.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,9 +119,11 @@
 				7B98C7E62AA0B43700F6D925 /* PaletteSettingsConfiguration+Extension.swift */,
 				7B98C7E82AA0B4C500F6D925 /* SettingView.swift */,
 				7B98C7EA2AA0B50B00F6D925 /* Helpers.swift */,
+				7BD2F5C12AFCFB540037709F /* MediaFormat.swift */,
 				7B644E54293F311700068ACD /* Views */,
 				7B99C2DD29389020002B6BB7 /* ImagePicker.swift */,
 				7B2BB6A129C45CD700DB1CE1 /* DocumentPicker.swift */,
+				7BB6D5292B0907FC00A21E2F /* DocumentExporter.swift */,
 				7B99C2D129388FDB002B6BB7 /* Assets.xcassets */,
 				7B99C2D329388FDB002B6BB7 /* Preview Content */,
 			);
@@ -211,6 +217,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				7B98C7E72AA0B43700F6D925 /* PaletteSettingsConfiguration+Extension.swift in Sources */,
+				7BB6D52A2B0907FC00A21E2F /* DocumentExporter.swift in Sources */,
+				7BD2F5C22AFCFB540037709F /* MediaFormat.swift in Sources */,
 				7B98C7E92AA0B4C500F6D925 /* SettingView.swift in Sources */,
 				7B644E5B293F38D700068ACD /* ContentView.swift in Sources */,
 				7B2BB6A229C45CD700DB1CE1 /* DocumentPicker.swift in Sources */,
@@ -348,7 +356,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Dithering/Dithering.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_ASSET_PATHS = "\"Dithering/Preview Content\"";
 				DEVELOPMENT_TEAM = EUKTZ7725R;
 				ENABLE_HARDENED_RUNTIME = NO;
@@ -364,7 +372,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.6.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skillbreak.Dithering;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -372,7 +380,7 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,6";
+				TARGETED_DEVICE_FAMILY = "2,6";
 			};
 			name = Debug;
 		};
@@ -383,7 +391,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Dithering/Dithering.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_ASSET_PATHS = "\"Dithering/Preview Content\"";
 				DEVELOPMENT_TEAM = EUKTZ7725R;
 				ENABLE_HARDENED_RUNTIME = NO;
@@ -399,7 +407,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.6.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skillbreak.Dithering;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -407,7 +415,7 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,6";
+				TARGETED_DEVICE_FAMILY = "2,6";
 			};
 			name = Release;
 		};

@@ -11,4 +11,6 @@ struct DitherMethods {
     let floatingImageDescription: FloatingImageDescription
     let seed: Int
     let orderedDitheringMetal: MetalOrderedDithering
+    let colorMatchCache: ByteByteColorCache?
+    let floatingColorMatchCache: FloatByteColorCache?
 }

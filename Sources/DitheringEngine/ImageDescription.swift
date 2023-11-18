@@ -5,8 +5,14 @@
 //  Created by Eskil Gjerde Sviggum on 29/11/2022.
 //
 
+import CoreVideo.CVPixelBuffer
 import CoreGraphics
 import simd
+
+enum PixelOrdering {
+    case bgra
+    case rgba
+}
 
 final class GenericImageDescription<Color: ImageColor> {
     /// The width of the image.
@@ -30,12 +36,14 @@ final class GenericImageDescription<Color: ImageColor> {
     /// Pointer to the image bytes
     let buffer: UnsafeMutablePointer<Color>
     
-    private let getterBuffer = UnsafeMutablePointer<Color>.allocate(capacity: 3)
+    private let getterBuffer = UnsafeMutablePointer<Color>.allocate(capacity: 4)
     
     private var isReleased: Bool = false
     
+    let pixelOrdering: PixelOrdering
+    
     /// Initializes an empty image with the specified size and channels.
-    init(width: Int, height: Int, components: Int) {
+    init(width: Int, height: Int, components: Int, pixelOrdering: PixelOrdering = .rgba) {
         self.width = width
         self.height = height
         self.components = components
@@ -43,6 +51,7 @@ final class GenericImageDescription<Color: ImageColor> {
         self.count = components * width * height
         self.bytesPerRow = components * width
         self.buffer = UnsafeMutablePointer<Color>.allocate(capacity: count)
+        self.pixelOrdering = pixelOrdering
     }
     
     /// Returns a new image description with the same image data copied over.
@@ -107,12 +116,11 @@ extension GenericImageDescription {
         }
         
         
-        getterBuffer.update(from: buffer.advanced(by: components * i), count: 3)
-        let color = UnsafeRawPointer(getterBuffer)
-            .assumingMemoryBound(to: SIMD3<Color>.self)
-            .pointee
-
-        return color
+        let index = components * i
+        
+        return SIMD3(buffer[index + 0],
+                     buffer[index + 1],
+                     buffer[index + 2])
     }
     
     func setColorAt(index i: Int, color: SIMD3<Color>) {
@@ -120,12 +128,20 @@ extension GenericImageDescription {
             return
         }
         
-        var color = color
-        withUnsafeBytes(of: &color) { bufferPointer in
-            let pointer = bufferPointer.baseAddress!.assumingMemoryBound(to: Color.self)
-            buffer.advanced(by: components * i).update(from: pointer, count: 3)
-        }
+        let index = components * i
         
+        buffer[index + 0] = color.x
+        buffer[index + 1] = color.y
+        buffer[index + 2] = color.z
+    }
+    
+    private func handlePixelOrderingTransform(forColor color: SIMD3<Color>) -> SIMD3<Color> {
+        switch pixelOrdering {
+        case .rgba:
+            return color
+        case .bgra:
+            return SIMD3<Color>(x: color.z, y: color.y, z: color.x)
+        }
     }
     
 }
@@ -150,9 +166,38 @@ extension GenericImageDescription where Color == UInt8 {
         return true
     }
     
+    /// Sets the image data of the image
+    func setBufferFrom(pixelBuffer: CVPixelBuffer) -> Bool {
+        if isReleased {
+            return false
+        }
+        
+        CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly)
+        
+        guard let baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer)?.assumingMemoryBound(to: UInt8.self) else {
+            return false
+        }
+        
+        for i in 0..<count {
+            let b = baseAddress[4 * i + 0]
+            let g = baseAddress[4 * i + 1]
+            let r = baseAddress[4 * i + 2]
+            let a = baseAddress[4 * i + 3]
+            
+            buffer[4 * i + 0] = r
+            buffer[4 * i + 1] = g
+            buffer[4 * i + 2] = b
+            buffer[4 * i + 3] = a
+        }
+        
+        CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly)
+        
+        return true
+    }
+    
     /// Converts to FloatingImageDescription
     func toFloatingImageDescription() -> FloatingImageDescription {
-        let imageDescription = FloatingImageDescription(width: width, height: height, components: components)
+        let imageDescription = FloatingImageDescription(width: width, height: height, components: components, pixelOrdering: pixelOrdering)
         
         for i in 0..<size {
             let color = getColorAt(index: i)
@@ -165,18 +210,18 @@ extension GenericImageDescription where Color == UInt8 {
     
     /// Converts to FloatingImageDescription and writes to buffer
     func toFloatingImageDescription(writingTo imageDescription: FloatingImageDescription) {
-       for i in 0..<size {
-           let color = getColorAt(index: i)
-           let floatingColor = SIMD3<Float>(color)
-           imageDescription.setColorAt(index: i, color: floatingColor)
-       }
+        for i in 0..<size {
+            let color = getColorAt(index: i)
+            let floatingColor = SIMD3<Float>(color)
+            imageDescription.setColorAt(index: i, color: floatingColor)
+        }
 
     }
     
     /// Generates a CGImage from the image buffer data.
     func makeCGImage() throws -> CGImage {
         guard let component = Component(rawValue: components) else {
-            throw MakeCGImage.Error.invalidNumberOfComponents
+            throw MakeImage.Error.invalidNumberOfComponents
         }
         
         guard
@@ -184,23 +229,65 @@ extension GenericImageDescription where Color == UInt8 {
                 data: buffer,
                 width: width,
                 height: height,
-                bitsPerComponent: MakeCGImage.bitsPerComponent,
+                bitsPerComponent: MakeImage.bitsPerComponent,
                 bytesPerRow: bytesPerRow,
                 space: component.colorSpace,
                 bitmapInfo: component.bitmapInfo
             )
         else {
-            throw MakeCGImage.Error.failedToCreateCGContext
+            throw MakeImage.Error.failedToCreateCGContext
         }
         
         guard let image = context.makeImage() else {
-            throw MakeCGImage.Error.failedToCreateImage
+            throw MakeImage.Error.failedToCreateImage
         }
         
         return image
     }
     
-    struct MakeCGImage {
+    /// Generates a CVPixelBuffer from the image buffer data.
+    func makePixelBuffer(invertedColorBuffer: UnsafeMutablePointer<Color>) throws -> CVPixelBuffer {
+        var pixelBuffer: CVPixelBuffer?
+        let attrs = [
+            kCVPixelBufferCGImageCompatibilityKey: true,
+            kCVPixelBufferCGBitmapContextCompatibilityKey: false,
+            kCVPixelBufferWidthKey: width,
+            kCVPixelBufferHeightKey: height
+        ] as CFDictionary
+        
+        for i in 0..<count {
+            let r = buffer[4 * i + 0]
+            let g = buffer[4 * i + 1]
+            let b = buffer[4 * i + 2]
+            let a = buffer[4 * i + 3]
+            
+            invertedColorBuffer[4 * i + 0] = b
+            invertedColorBuffer[4 * i + 1] = g
+            invertedColorBuffer[4 * i + 2] = r
+            invertedColorBuffer[4 * i + 3] = a
+        }
+        
+        let status = CVPixelBufferCreateWithBytes(
+            kCFAllocatorDefault,
+            width,
+            height,
+            kCVPixelFormatType_32BGRA,
+            invertedColorBuffer,
+            bytesPerRow,
+            nil,
+            nil,
+            attrs,
+            &pixelBuffer
+        )
+        
+        guard let pixelBuffer, status == kCVReturnSuccess else {
+            throw MakeImage.Error.failedToCreateCVPixelBuffer(status: status)
+        }
+        
+        return pixelBuffer
+    }
+    
+    struct MakeImage {
         private init() {}
         
         static let bitsPerComponent = UInt8.bitWidth
@@ -209,6 +296,7 @@ extension GenericImageDescription where Color == UInt8 {
             case invalidNumberOfComponents
             case failedToCreateCGContext
             case failedToCreateImage
+            case failedToCreateCVPixelBuffer(status: CVReturn)
         }
     }
     
