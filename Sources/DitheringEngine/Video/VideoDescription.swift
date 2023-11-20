@@ -42,6 +42,16 @@ public struct VideoDescription {
         return Int(framerate * Float(duration))
     }
     
+    func expectedFrameRate(frameRateCap: Float? = nil) -> Float {
+        guard let frameRateCap else {
+            return self.framerate ?? 0
+        }
+        
+        let frameRate = self.framerate?.rounded() ?? 0
+        let expectedFrameRate = max(1, frameRateCap)
+        return frameRate < expectedFrameRate ? frameRate : expectedFrameRate
+    }
+    
     var size: CGSize? {
         guard let videoTrack = asset.tracks(withMediaType: .video).first else {
             return nil
@@ -79,10 +89,8 @@ public struct VideoDescription {
         }
         
         let frameRate = videoTrack.nominalFrameRate.rounded()
-        let expectedFrameRate: Float = frameRateCap ?? frameRate
+        let expectedFrameRate = expectedFrameRate(frameRateCap: frameRateCap)
         let framesToInclude = Int(frameRate / expectedFrameRate)
-        
-        print(frameRate, expectedFrameRate, framesToInclude)
         
         let trackReaderOutput = AVAssetReaderTrackOutput(track: videoTrack, outputSettings: outputSettings)
         

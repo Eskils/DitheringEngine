@@ -11,7 +11,7 @@ import CoreImage.CIFilterBuiltins
 
 public struct VideoDitheringEngine {
     
-    private let frameRate: Float = 30
+    public private(set) var frameRate: Float = 30
     
     private let queue = DispatchQueue(label: "com.skillbreak.DitheringEngine", qos: .default, attributes: .concurrent, autoreleaseFrequency: .workItem, target: nil)
     
@@ -19,6 +19,14 @@ public struct VideoDitheringEngine {
     private let workItems = 5
     
     public init() {}
+    
+    /// Provide the frame rate for your resulting video. 
+    /// The final frame rate is less than or equal to the specified value.
+    /// If you specify 30, and the imported video has a framerate of 24 frames per second,
+    /// The resulting video will have a framerate of 24 fps.
+    public init(frameRate: Int) {
+        self.frameRate = Float(frameRate)
+    }
     
     public func dither(video url: URL, resizingTo size: CGSize?, usingMethod ditherMethod: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherMethodSettings: SettingsConfiguration, andPaletteSettings paletteSettings: SettingsConfiguration, outputURL: URL, progressHandler: ((Float) -> Void)? = nil, completionHandler: @escaping (Error?) -> Void) {
         var videoDescription = VideoDescription(url: url)
@@ -47,6 +55,8 @@ public struct VideoDitheringEngine {
             completionHandler(VideoDescription.VideoDescriptionError.assetContainsNoTrackForVideo)
             return
         }
+        
+        let frameRate = videoDescription.expectedFrameRate(frameRateCap: self.frameRate)
         
         let size: CGSize
         if let renderSize = videoDescription.renderSize {
