@@ -74,7 +74,7 @@ public struct VideoDescription {
         }
     }
     
-    func getFrames(frameRateCap: Float? = nil) throws -> GetFramesHandler {
+    func makeReader() throws -> AVAssetReader {
         let assetReader: AVAssetReader
         do {
             assetReader = try AVAssetReader(asset: asset)
@@ -82,6 +82,14 @@ public struct VideoDescription {
             throw VideoDescriptionError.cannotMakeAssetReader(error)
         }
         
+        return assetReader
+    }
+    
+    func startReading(reader: AVAssetReader) {
+        reader.startReading()
+    }
+    
+    func getFrames(assetReader: AVAssetReader, frameRateCap: Float? = nil) throws -> GetFramesHandler {
         let outputSettings = [String(kCVPixelBufferPixelFormatTypeKey): NSNumber(value: kCVPixelFormatType_32BGRA)]
         
         guard let videoTrack = asset.tracks(withMediaType: .video).first else {
@@ -99,20 +107,45 @@ public struct VideoDescription {
         }
         
         assetReader.add(trackReaderOutput)
-        assetReader.startReading()
         
         return GetFramesHandler(assetReader: assetReader, trackReaderOutput: trackReaderOutput, framesToInclude: framesToInclude)
     }
     
+    func getAudio(assetReader: AVAssetReader) throws -> GetAudioHandler {
+        let outputSettings = [AVFormatIDKey: kAudioFormatLinearPCM]
+        
+        guard let videoTrack = asset.tracks(withMediaType: .audio).first else {
+            throw VideoDescriptionError.assetContainsNoTrackForVideo
+        }
+        
+        let trackReaderOutput = AVAssetReaderTrackOutput(track: videoTrack, outputSettings: outputSettings)
+        
+        if !assetReader.canAdd(trackReaderOutput) {
+            throw VideoDescriptionError.cannotAddTrackReaderOutput
+        }
+        
+        assetReader.add(trackReaderOutput)
+        
+        return GetAudioHandler(assetReader: assetReader, trackReaderOutput: trackReaderOutput, framesToInclude: 1)
+    }
+}
+
+extension VideoDescription {
     enum VideoDescriptionError: Error {
         case cannotMakeAssetReader(Error)
         case assetContainsNoTrackForVideo
+        case assetContainsNoTrackForAudio
         case cannotAddTrackReaderOutput
         case failedToReadAllFramesInVideo(status: Int)
         case cannotMakeExporter
     }
+}
+
+extension VideoDescription {
+    typealias GetFramesHandler = GetSamplesHandler<GetVideo>
+    typealias GetAudioHandler = GetSamplesHandler<GetAudio>
     
-    class GetFramesHandler {
+    class GetSamplesHandler<Kind: GetFramesHandlerType> {
         
         private let assetReader: AVAssetReader
         private let trackReaderOutput: AVAssetReaderTrackOutput
@@ -125,7 +158,7 @@ public struct VideoDescription {
             self.framesToInclude = framesToInclude
         }
         
-        func next() -> CVPixelBuffer? {
+        func next() -> CVPixelBuffer? where Kind == GetVideo {
             while let sampleBuffer = trackReaderOutput.copyNextSampleBuffer() {
                 if sampleIndex % framesToInclude != 0 {
                     sampleIndex += 1
@@ -141,9 +174,22 @@ public struct VideoDescription {
             return nil
         }
         
+        func next() -> CMSampleBuffer? where Kind == GetAudio {
+            if let sampleBuffer = trackReaderOutput.copyNextSampleBuffer() {
+                return sampleBuffer
+            }
+            
+            return nil
+        }
+        
         func cancel() {
             assetReader.cancelReading()
         }
     }
+    
+    enum GetVideo: GetFramesHandlerType {}
+    enum GetAudio: GetFramesHandlerType {}
 }
+
+protocol GetFramesHandlerType {}
 

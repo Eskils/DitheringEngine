@@ -111,7 +111,23 @@ public struct VideoDitheringEngine {
         percentFormatter.numberStyle = .percent
         
         do {
-            let frames = try videoDescription.getFrames(frameRateCap: frameRate)
+            let assetReader = try videoDescription.makeReader()
+            let frames = try videoDescription.getFrames(assetReader: assetReader, frameRateCap: frameRate)
+            
+            let audioSamples: VideoDescription.GetAudioHandler?
+            do {
+                audioSamples = try videoDescription.getAudio(assetReader: assetReader)
+            } catch {
+                if let error = error as? VideoDescription.VideoDescriptionError,
+                   case .assetContainsNoTrackForAudio = error {
+                    print("Media has no audio track")
+                    audioSamples = nil
+                } else {
+                    throw error
+                }
+            }
+            
+            videoDescription.startReading(reader: assetReader)
             
             DispatchQueue.main.async {
                 dispatchUntilEmpty(queue: queue, contexts: workItemContexts, frames: frames, videoAssembler: videoAssembler) { batchNumber in
@@ -121,7 +137,10 @@ public struct VideoDitheringEngine {
                     }
                 } completion: {
                     print("Finished adding all frames")
-                    
+                    if let audioSamples {
+                        transferAudio(audioSamples: audioSamples, videoAssembler: videoAssembler)
+                        print("Finished adding audio")
+                    }
                     DispatchQueue.main.async {
                         Task {
                             await videoAssembler.generateVideo()
@@ -134,6 +153,12 @@ public struct VideoDitheringEngine {
             videoAssembler.cancelVideoGeneration()
             completionHandler(error)
             return
+        }
+    }
+    
+    func transferAudio(audioSamples: VideoDescription.GetAudioHandler, videoAssembler: VideoAssembler) {
+        while let sample = audioSamples.next() {
+            videoAssembler.addAudio(sample: sample)
         }
     }
     

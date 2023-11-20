@@ -15,8 +15,9 @@ class VideoAssembler {
     let framerate: Int
     
     private let assetWriter: AVAssetWriter
-    private let assetWriterInput: AVAssetWriterInput
-    private let assetWriterAdaptor: AVAssetWriterInputPixelBufferAdaptor
+    private let videoInput: AVAssetWriterInput
+    private let videoInputAdaptor: AVAssetWriterInputPixelBufferAdaptor
+    private let audioInput: AVAssetWriterInput
     
     private let emitFrames: Bool
     private let framesURL: URL
@@ -31,12 +32,26 @@ class VideoAssembler {
         
         self.assetWriter = try AVAssetWriter(outputURL: outputURL, fileType: .mp4)
         
-        let assetWriterSettings = [AVVideoCodecKey: AVVideoCodecType.h264, AVVideoWidthKey : width, AVVideoHeightKey: height] as [String : Any]
+        let videoSettings = [
+            AVVideoCodecKey: AVVideoCodecType.h264,
+            AVVideoWidthKey : width,
+            AVVideoHeightKey: height
+        ] as [String : Any]
         
-        self.assetWriterInput = AVAssetWriterInput(mediaType: .video, outputSettings: assetWriterSettings)
-        self.assetWriterAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: assetWriterInput, sourcePixelBufferAttributes: nil)
+        let audioSettings = [
+            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            //FIXME: Retrieve sample rate from input video
+            AVSampleRateKey: 44_100,
+            AVNumberOfChannelsKey: 2,
+            AVEncoderBitRateKey: 160_000
+        ] as [String : Any]
         
-        assetWriterInput.expectsMediaDataInRealTime = true
+        self.videoInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
+        self.videoInputAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: videoInput, sourcePixelBufferAttributes: nil)
+        
+        self.audioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
+        
+        videoInput.expectsMediaDataInRealTime = true
         
         self.framesURL = outputURL.deletingLastPathComponent().appendingPathComponent("Frames")
         
@@ -52,11 +67,17 @@ class VideoAssembler {
     }
     
     private func startVideoAssetWriter() throws {
-        guard assetWriter.canAdd(assetWriterInput) else {
-            throw VideoAssemblerError.cannotAddAssetWriterInput
+        guard assetWriter.canAdd(videoInput) else {
+            throw VideoAssemblerError.cannotAddVideoAssetWriterInput
         }
         
-        assetWriter.add(assetWriterInput)
+        guard assetWriter.canAdd(audioInput) else {
+            throw VideoAssemblerError.cannotAddAudioAssetWriterInput
+        }
+        
+        assetWriter.add(videoInput)
+        assetWriter.add(audioInput)
+        
         assetWriter.startWriting()
         assetWriter.startSession(atSourceTime: CMTime.zero)
     }
@@ -69,8 +90,13 @@ class VideoAssembler {
         let frametime = CMTimeMake(value: Int64(framecount), timescale: Int32(framerate))
         framecount += 1
         
-        while !assetWriterInput.isReadyForMoreMediaData {}
-        self.assetWriterAdaptor.append(pixelBuffer, withPresentationTime: frametime)
+        while !videoInput.isReadyForMoreMediaData {}
+        self.videoInputAdaptor.append(pixelBuffer, withPresentationTime: frametime)
+    }
+    
+    func addAudio(sample: CMSampleBuffer) {
+        while !audioInput.isReadyForMoreMediaData {}
+        audioInput.append(sample)
     }
     
     let context = CIContext()
@@ -85,8 +111,9 @@ class VideoAssembler {
     }
     
     func generateVideo() async {
-        while !assetWriterInput.isReadyForMoreMediaData {}
-        assetWriterInput.markAsFinished()
+        while !videoInput.isReadyForMoreMediaData {}
+        videoInput.markAsFinished()
+        audioInput.markAsFinished()
         await assetWriter.finishWriting()
     }
     
@@ -95,7 +122,8 @@ class VideoAssembler {
     }
     
     enum VideoAssemblerError: Error {
-        case cannotAddAssetWriterInput
+        case cannotAddVideoAssetWriterInput
+        case cannotAddAudioAssetWriterInput
     }
     
 }

@@ -524,7 +524,6 @@ Some key takeaways:
 ```swift
 VideoDitheringEngine(frameRate: Int)
 ```
-- Audio is not supported (yet)
 
 ### Video Description
 
