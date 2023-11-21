@@ -134,8 +134,17 @@ extension ToolbarView {
                             try FileManager.default.removeItem(at: outputURL)
                         }
                         print("Output URL: ", outputURL)
-                        //FIXME: Support landscape video
-                        originalVideo.renderSize = CGSize(width: 360, height: 1)
+                        
+                        // Resize video to 360:-1 or -1:360
+                        let lowerBoundDimension: CGFloat = 360
+                        if let originalSize = originalVideo.size, originalSize.width > originalSize.height {
+                            let aspectRatio = originalSize.width / originalSize.height
+                            let renderSize = CGSize(width: aspectRatio * lowerBoundDimension, height: lowerBoundDimension)
+                            originalVideo.renderSize = renderSize
+                        } else {
+                            originalVideo.renderSize = CGSize(width: lowerBoundDimension, height: 1)
+                        }
+                        
                         videoDitheringEngine.dither(videoDescription: originalVideo, usingMethod: ditherMethod, andPalette: palette, withDitherMethodSettings: additionalDitherMethodSetting.settingsConfiguration, andPaletteSettings: additionalPalleteSettings.settingsConfiguration, outputURL: outputURL, progressHandler: progressHandler) { error in
                             timer.invalidate()
                             DispatchQueue.main.async {

@@ -174,6 +174,7 @@ struct ToolbarView: View {
     
     @MainActor
     func didPressExport() {
+        self.exportProgress = 0
         if viewModel.isInVideoMode {
             exportVideo()
         } else {

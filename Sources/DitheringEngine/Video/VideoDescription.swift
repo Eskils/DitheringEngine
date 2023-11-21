@@ -22,7 +22,7 @@ public struct VideoDescription {
         self.asset = asset
     }
     
-    var framerate: Float? {
+    public var framerate: Float? {
         guard let videoTrack = asset.tracks(withMediaType: .video).first else {
             return nil
         }
@@ -30,7 +30,7 @@ public struct VideoDescription {
         return videoTrack.nominalFrameRate
     }
     
-    var duration: TimeInterval {
+    public var duration: TimeInterval {
         asset.duration.seconds
     }
     
@@ -52,7 +52,7 @@ public struct VideoDescription {
         return frameRate < expectedFrameRate ? frameRate : expectedFrameRate
     }
     
-    var sampleRate: Int? {
+    public var sampleRate: Int? {
         guard let audioTrack = asset.tracks(withMediaType: .audio).first else {
             return nil
         }
@@ -60,7 +60,7 @@ public struct VideoDescription {
         return Int(audioTrack.naturalTimeScale)
     }
     
-    var size: CGSize? {
+    public var size: CGSize? {
         guard let videoTrack = asset.tracks(withMediaType: .video).first else {
             return nil
         }

@@ -535,7 +535,11 @@ You set the video you want to use as input through the `VideoDescription` type. 
 **Properites**
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| renderSize | CGSize? | nil | Specifies the size for which to render the final dithered video. |
+| renderSize | CGSize? { get set } | nil | Specifies the size for which to render the final dithered video. |
+| framerate | Float? { get } | nominalFrameRate | Returns the number of frames per second. Nil if the asset does not contain video. |
+| duration | TimeInterval { get } | duration.seconds | Returns the duration of the video. |
+| sampleRate | Int? { get } | naturalTimeScale | Returns the number of audio samples per second. Nil if the asset does not contain audio. |
+| size | CGSize? { get } | naturalSize | Returns the size of the video. Nil if the asset does not contain video. |
 
 **Methods**
 

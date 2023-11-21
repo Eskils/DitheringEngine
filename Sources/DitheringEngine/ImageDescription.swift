@@ -269,7 +269,7 @@ extension GenericImageDescription where Color == UInt8 {
     }
     
     /// Generates a CVPixelBuffer from the image buffer data.
-    func makePixelBuffer(invertedColorBuffer: UnsafeMutablePointer<Color>) throws -> CVPixelBuffer {
+    func makePixelBuffer() throws -> CVPixelBuffer {
         var pixelBuffer: CVPixelBuffer?
         let attrs = [
             kCVPixelBufferCGImageCompatibilityKey: true,

@@ -96,7 +96,6 @@ public struct VideoDitheringEngine {
         let workItemContexts = (0..<workItems).compactMap { _ -> WorkItemContext? in
             return WorkItemContext(
                 ditheringEngine: DitheringEngine(),
-                invertBuffer: UnsafeMutablePointer<UInt8>.allocate(capacity: 4 * width * height),
                 context: CIContext(),
                 renderSize: videoDescription.renderSize,
                 ditherMethod: ditherMethod,
@@ -237,7 +236,6 @@ public struct VideoDitheringEngine {
     
     struct WorkItemContext {
         private let ditheringEngine: DitheringEngine
-        private let invertBuffer: UnsafeMutablePointer<UInt8>
         private let context: CIContext
         private let renderSize: CGSize?,
             ditherMethod: DitherMethod,
@@ -247,9 +245,8 @@ public struct VideoDitheringEngine {
             byteColorCache: ByteByteColorCache?,
             floatingColorCache: FloatByteColorCache?
         
-        init(ditheringEngine: DitheringEngine, invertBuffer: UnsafeMutablePointer<UInt8>, context: CIContext, renderSize: CGSize? = nil, ditherMethod: DitherMethod, palette: Palette, ditherMethodSettings: SettingsConfiguration, paletteSettings: SettingsConfiguration, byteColorCache: ByteByteColorCache?, floatingColorCache: FloatByteColorCache?) {
+        init(ditheringEngine: DitheringEngine, context: CIContext, renderSize: CGSize? = nil, ditherMethod: DitherMethod, palette: Palette, ditherMethodSettings: SettingsConfiguration, paletteSettings: SettingsConfiguration, byteColorCache: ByteByteColorCache?, floatingColorCache: FloatByteColorCache?) {
             self.ditheringEngine = ditheringEngine
-            self.invertBuffer = invertBuffer
             self.context = context
             self.renderSize = renderSize
             self.ditherMethod = ditherMethod
@@ -271,7 +268,6 @@ public struct VideoDitheringEngine {
                 scaleFilter.scale = 1
             }
             
-            //FIXME: Remove invertColorBuffer
             if let scaledImage = scaleFilter.outputImage,
                let renderedImage = ciImageToCVPixelBuffer(image: scaledImage, context: context) {
                 try ditheringEngine.set(pixelBuffer: renderedImage)
@@ -285,7 +281,6 @@ public struct VideoDitheringEngine {
                 andPalette: palette,
                 withDitherMethodSettings: ditherMethodSettings,
                 withPaletteSettings: paletteSettings,
-                invertedColorBuffer: invertBuffer,
                 byteColorCache: byteColorCache,
                 floatingColorCache: floatingColorCache
             )
