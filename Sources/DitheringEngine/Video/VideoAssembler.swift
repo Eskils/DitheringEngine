@@ -13,6 +13,7 @@ class VideoAssembler {
     let width: Int
     let height: Int
     let framerate: Int
+    let sampleRate: Int
     
     private let assetWriter: AVAssetWriter
     private let videoInput: AVAssetWriterInput
@@ -24,10 +25,11 @@ class VideoAssembler {
     
     private var framecount: Int = 0
     
-    init(outputURL: URL, width: Int, height: Int, framerate: Int, emitFrames: Bool = false) throws {
+    init(outputURL: URL, width: Int, height: Int, framerate: Int, sampleRate: Int, emitFrames: Bool = false) throws {
         self.width = width
         self.height = height
         self.framerate = framerate
+        self.sampleRate = sampleRate
         self.emitFrames = emitFrames
         
         self.assetWriter = try AVAssetWriter(outputURL: outputURL, fileType: .mp4)
@@ -40,8 +42,7 @@ class VideoAssembler {
         
         let audioSettings = [
             AVFormatIDKey: kAudioFormatMPEG4AAC,
-            //FIXME: Retrieve sample rate from input video
-            AVSampleRateKey: 44_100,
+            AVSampleRateKey: sampleRate,
             AVNumberOfChannelsKey: 2,
             AVEncoderBitRateKey: 160_000
         ] as [String : Any]

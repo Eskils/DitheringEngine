@@ -52,6 +52,14 @@ public struct VideoDescription {
         return frameRate < expectedFrameRate ? frameRate : expectedFrameRate
     }
     
+    var sampleRate: Int? {
+        guard let audioTrack = asset.tracks(withMediaType: .audio).first else {
+            return nil
+        }
+        
+        return Int(audioTrack.naturalTimeScale)
+    }
+    
     var size: CGSize? {
         guard let videoTrack = asset.tracks(withMediaType: .video).first else {
             return nil
@@ -150,7 +158,7 @@ extension VideoDescription {
         private let assetReader: AVAssetReader
         private let trackReaderOutput: AVAssetReaderTrackOutput
         private let framesToInclude: Int
-        var sampleIndex = 0
+        private var sampleIndex = 0
         
         init(assetReader: AVAssetReader, trackReaderOutput: AVAssetReaderTrackOutput, framesToInclude: Int) {
             self.assetReader = assetReader

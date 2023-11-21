@@ -57,6 +57,7 @@ public struct VideoDitheringEngine {
         }
         
         let frameRate = videoDescription.expectedFrameRate(frameRateCap: self.frameRate)
+        let sampleRate = videoDescription.sampleRate ?? 0
         
         let size: CGSize
         if let renderSize = videoDescription.renderSize {
@@ -72,7 +73,7 @@ public struct VideoDitheringEngine {
         
         let videoAssembler: VideoAssembler
         do {
-            videoAssembler = try VideoAssembler(outputURL: outputURL, width: Int(size.width.rounded()), height: Int(size.height.rounded()), framerate: Int(frameRate), emitFrames: true)
+            videoAssembler = try VideoAssembler(outputURL: outputURL, width: Int(size.width.rounded()), height: Int(size.height.rounded()), framerate: Int(frameRate), sampleRate: sampleRate, emitFrames: true)
         } catch {
             completionHandler(error)
             return
