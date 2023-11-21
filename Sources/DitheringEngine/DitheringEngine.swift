@@ -131,20 +131,20 @@ public class DitheringEngine {
         return try resultImageDescription.makeCGImage()
     }
     
-    func generateResultPixelBuffer(invertedColorBuffer: UnsafeMutablePointer<UInt8>) throws -> CVPixelBuffer {
+    func generateResultPixelBuffer() throws -> CVPixelBuffer {
         guard let resultImageDescription else {
             throw Error.noImageDescription
         }
         
-        return try resultImageDescription.makePixelBuffer(invertedColorBuffer: invertedColorBuffer)
+        return try resultImageDescription.makePixelBuffer()
     }
     
-    func generateOriginalImagePixelBuffer(invertedColorBuffer: UnsafeMutablePointer<UInt8>) throws -> CVPixelBuffer {
+    func generateOriginalImagePixelBuffer() throws -> CVPixelBuffer {
         guard let imageDescription else {
             throw Error.noImageDescription
         }
         
-        return try imageDescription.makePixelBuffer(invertedColorBuffer: invertedColorBuffer)
+        return try imageDescription.makePixelBuffer()
     }
     
 }
@@ -204,13 +204,13 @@ extension DitheringEngine {
         return try generateResultImage()
     }
     
-    func ditherIntoPixelBuffer(usingMethod method: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherSettings: SettingsConfiguration, withPaletteSettings paletteSettings: SettingsConfiguration, invertedColorBuffer: UnsafeMutablePointer<UInt8>, byteColorCache: ByteByteColorCache?, floatingColorCache: FloatByteColorCache?) throws -> CVPixelBuffer {
+    func ditherIntoPixelBuffer(usingMethod method: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherSettings: SettingsConfiguration, withPaletteSettings paletteSettings: SettingsConfiguration, byteColorCache: ByteByteColorCache?, floatingColorCache: FloatByteColorCache?) throws -> CVPixelBuffer {
         guard
             let imageDescription,
             let floatingImageDescription,
             let resultImageDescription
         else {
-            return try generateResultPixelBuffer(invertedColorBuffer: invertedColorBuffer)
+            return try generateResultPixelBuffer()
         }
         
         resultImageDescription.buffer.update(repeating: 255, count: resultImageDescription.count)
@@ -227,7 +227,7 @@ extension DitheringEngine {
             floatingColorCache: floatingColorCache
         )
         
-        return try generateResultPixelBuffer(invertedColorBuffer: invertedColorBuffer)
+        return try generateResultPixelBuffer()
     }
     
 }

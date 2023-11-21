@@ -11,7 +11,8 @@ import CoreImage.CIFilterBuiltins
 
 public struct VideoDitheringEngine {
     
-    private let frameRate: Float = 30
+    /// The frame rate for your resulting video.
+    public private(set) var frameRate: Float = 30
     
     private let queue = DispatchQueue(label: "com.skillbreak.DitheringEngine", qos: .default, attributes: .concurrent, autoreleaseFrequency: .workItem, target: nil)
     
@@ -19,6 +20,14 @@ public struct VideoDitheringEngine {
     private let workItems = 5
     
     public init() {}
+    
+    /// Provide the frame rate for your resulting video. 
+    /// The final frame rate is less than or equal to the specified value.
+    /// If you specify 30, and the imported video has a framerate of 24 frames per second,
+    /// The resulting video will have a framerate of 24 fps.
+    public init(frameRate: Int) {
+        self.frameRate = Float(frameRate)
+    }
     
     public func dither(video url: URL, resizingTo size: CGSize?, usingMethod ditherMethod: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherMethodSettings: SettingsConfiguration, andPaletteSettings paletteSettings: SettingsConfiguration, outputURL: URL, progressHandler: ((Float) -> Void)? = nil, completionHandler: @escaping (Error?) -> Void) {
         var videoDescription = VideoDescription(url: url)
@@ -48,6 +57,9 @@ public struct VideoDitheringEngine {
             return
         }
         
+        let frameRate = videoDescription.expectedFrameRate(frameRateCap: self.frameRate)
+        let sampleRate = videoDescription.sampleRate ?? 44100
+        
         let size: CGSize
         if let renderSize = videoDescription.renderSize {
             let width = renderSize.width
@@ -62,7 +74,7 @@ public struct VideoDitheringEngine {
         
         let videoAssembler: VideoAssembler
         do {
-            videoAssembler = try VideoAssembler(outputURL: outputURL, width: Int(size.width.rounded()), height: Int(size.height.rounded()), framerate: Int(frameRate), emitFrames: true)
+            videoAssembler = try VideoAssembler(outputURL: outputURL, width: Int(size.width.rounded()), height: Int(size.height.rounded()), framerate: Int(frameRate), sampleRate: sampleRate, emitFrames: true)
         } catch {
             completionHandler(error)
             return
@@ -85,7 +97,6 @@ public struct VideoDitheringEngine {
         let workItemContexts = (0..<workItems).compactMap { _ -> WorkItemContext? in
             return WorkItemContext(
                 ditheringEngine: DitheringEngine(),
-                invertBuffer: UnsafeMutablePointer<UInt8>.allocate(capacity: 4 * width * height),
                 context: CIContext(),
                 renderSize: videoDescription.renderSize,
                 ditherMethod: ditherMethod,
@@ -97,11 +108,24 @@ public struct VideoDitheringEngine {
             )
         }
         
-        let percentFormatter = NumberFormatter()
-        percentFormatter.numberStyle = .percent
-        
         do {
-            let frames = try videoDescription.getFrames(frameRateCap: frameRate)
+            let assetReader = try videoDescription.makeReader()
+            let frames = try videoDescription.getFrames(assetReader: assetReader, frameRateCap: frameRate)
+            
+            let audioSamples: VideoDescription.GetAudioHandler?
+            do {
+                audioSamples = try videoDescription.getAudio(assetReader: assetReader)
+            } catch {
+                if let error = error as? VideoDescription.VideoDescriptionError,
+                   case .assetContainsNoTrackForAudio = error {
+                    print("Media has no audio track")
+                    audioSamples = nil
+                } else {
+                    throw error
+                }
+            }
+            
+            videoDescription.startReading(reader: assetReader)
             
             DispatchQueue.main.async {
                 dispatchUntilEmpty(queue: queue, contexts: workItemContexts, frames: frames, videoAssembler: videoAssembler) { batchNumber in
@@ -111,7 +135,10 @@ public struct VideoDitheringEngine {
                     }
                 } completion: {
                     print("Finished adding all frames")
-                    
+                    if let audioSamples {
+                        transferAudio(audioSamples: audioSamples, videoAssembler: videoAssembler)
+                        print("Finished adding audio")
+                    }
                     DispatchQueue.main.async {
                         Task {
                             await videoAssembler.generateVideo()
@@ -127,8 +154,14 @@ public struct VideoDitheringEngine {
         }
     }
     
+    private func transferAudio(audioSamples: VideoDescription.GetAudioHandler, videoAssembler: VideoAssembler) {
+        while let sample = audioSamples.next() {
+            videoAssembler.addAudio(sample: sample)
+        }
+    }
+    
     @MainActor
-    func dispatchUntilEmpty(queue: DispatchQueue, contexts: [WorkItemContext], frames: VideoDescription.GetFramesHandler, videoAssembler: VideoAssembler, count: Int = 0, progressHandler: @escaping (Int) -> Void, completion: @escaping () -> Void) {
+    private func dispatchUntilEmpty(queue: DispatchQueue, contexts: [WorkItemContext], frames: VideoDescription.GetFramesHandler, videoAssembler: VideoAssembler, count: Int = 0, progressHandler: @escaping (Int) -> Void, completion: @escaping () -> Void) {
         let numThreads = contexts.count
         let buffers = (0..<numThreads).compactMap { _ in frames.next() }
         let isLastRun = buffers.count != numThreads
@@ -161,7 +194,7 @@ public struct VideoDitheringEngine {
         }
     }
     
-    func dispatch(queue: DispatchQueue, contexts: [WorkItemContext], buffers: [CVPixelBuffer], idempotency: Int, completion: @escaping (Int, [CVPixelBuffer?]) -> Void) {
+    private func dispatch(queue: DispatchQueue, contexts: [WorkItemContext], buffers: [CVPixelBuffer], idempotency: Int, completion: @escaping (Int, [CVPixelBuffer?]) -> Void) {
         let numThreads = min(buffers.count, contexts.count)
         var results = [CVPixelBuffer?](repeating: nil, count: numThreads)
         var responses: Int = 0
@@ -185,27 +218,21 @@ public struct VideoDitheringEngine {
                     }
                 }
                 
-                guard
-                    let result = try? context.scaleAndDither(pixelBuffer: pixelBuffer)
-                else {
-                    return
+                do {
+                    let result = try context.scaleAndDither(pixelBuffer: pixelBuffer)
+                    results[i] = result
+                } catch {
+                    print("Failed to scale and dither frame: \(error)")
                 }
-                
-                results[i] = result
             }
         }
         
     }
- 
-    
-    struct RenderItem {
-        let pixelBuffer: CVPixelBuffer
-        let frame: Int
-    }
-    
+}
+
+extension VideoDitheringEngine {
     struct WorkItemContext {
         private let ditheringEngine: DitheringEngine
-        private let invertBuffer: UnsafeMutablePointer<UInt8>
         private let context: CIContext
         private let renderSize: CGSize?,
             ditherMethod: DitherMethod,
@@ -215,9 +242,8 @@ public struct VideoDitheringEngine {
             byteColorCache: ByteByteColorCache?,
             floatingColorCache: FloatByteColorCache?
         
-        init(ditheringEngine: DitheringEngine, invertBuffer: UnsafeMutablePointer<UInt8>, context: CIContext, renderSize: CGSize? = nil, ditherMethod: DitherMethod, palette: Palette, ditherMethodSettings: SettingsConfiguration, paletteSettings: SettingsConfiguration, byteColorCache: ByteByteColorCache?, floatingColorCache: FloatByteColorCache?) {
+        init(ditheringEngine: DitheringEngine, context: CIContext, renderSize: CGSize? = nil, ditherMethod: DitherMethod, palette: Palette, ditherMethodSettings: SettingsConfiguration, paletteSettings: SettingsConfiguration, byteColorCache: ByteByteColorCache?, floatingColorCache: FloatByteColorCache?) {
             self.ditheringEngine = ditheringEngine
-            self.invertBuffer = invertBuffer
             self.context = context
             self.renderSize = renderSize
             self.ditherMethod = ditherMethod
@@ -240,8 +266,8 @@ public struct VideoDitheringEngine {
             }
             
             if let scaledImage = scaleFilter.outputImage,
-               let renderedImage = context.createCGImage(scaledImage, from: scaledImage.extent) {
-                try ditheringEngine.set(image: renderedImage)
+               let renderedImage = ciImageToCVPixelBuffer(image: scaledImage, context: context) {
+                try ditheringEngine.set(pixelBuffer: renderedImage)
             } else {
                 print("Failed to resize image")
                 try ditheringEngine.set(pixelBuffer: pixelBuffer)
@@ -252,7 +278,6 @@ public struct VideoDitheringEngine {
                 andPalette: palette,
                 withDitherMethodSettings: ditherMethodSettings,
                 withPaletteSettings: paletteSettings,
-                invertedColorBuffer: invertBuffer,
                 byteColorCache: byteColorCache,
                 floatingColorCache: floatingColorCache
             )
@@ -260,26 +285,26 @@ public struct VideoDitheringEngine {
             return pixelBuffer
         }
     
-    private func ciImageToCVPixelBuffer(image: CIImage, context: CIContext) -> CVPixelBuffer? {
-        var pixelBuffer: CVPixelBuffer?
-        let width = Int(image.extent.width)
-        let height = Int(image.extent.height)
-        let attrs = [
-              kCVPixelBufferCGImageCompatibilityKey: true,
-              kCVPixelBufferCGBitmapContextCompatibilityKey: false,
-              kCVPixelBufferWidthKey: Int(image.extent.width),
-              kCVPixelBufferHeightKey: Int(image.extent.height)
-            ] as CFDictionary
-        CVPixelBufferCreate(kCFAllocatorDefault, width, height, kCVPixelFormatType_32BGRA, attrs, &pixelBuffer)
-        
-        guard let pixelBuffer else {
-            return nil
+        private func ciImageToCVPixelBuffer(image: CIImage, context: CIContext) -> CVPixelBuffer? {
+            var pixelBuffer: CVPixelBuffer?
+            let width = Int(image.extent.width)
+            let height = Int(image.extent.height)
+            let attrs = [
+                  kCVPixelBufferCGImageCompatibilityKey: true,
+                  kCVPixelBufferCGBitmapContextCompatibilityKey: true,
+                  kCVPixelBufferWidthKey: Int(image.extent.width),
+                  kCVPixelBufferHeightKey: Int(image.extent.height)
+                ] as CFDictionary
+            CVPixelBufferCreate(kCFAllocatorDefault, width, height, kCVPixelFormatType_32BGRA, attrs, &pixelBuffer)
+            
+            guard let pixelBuffer else {
+                return nil
+            }
+            
+            context.render(image, to: pixelBuffer)
+            
+            return pixelBuffer
         }
-        
-        context.render(image, to: pixelBuffer)
-        
-        return pixelBuffer
-    }
         
         
     }

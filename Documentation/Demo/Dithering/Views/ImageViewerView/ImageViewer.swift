@@ -26,10 +26,6 @@ struct ImageViewerView: View {
     
     init(appState: AppState) {
         self._appState = StateObject(wrappedValue: appState)
-        
-        //FIXME: This doesnt work
-        UIImageView.appearance().layer.magnificationFilter = .nearest
-        UIImageView.appearance().layer.minificationFilter = .nearest
     }
     
     var body: some View {
@@ -38,6 +34,8 @@ struct ImageViewerView: View {
                 ZStack {
                     Image(uiImage: mergedImage(geo: geo, rect: imageRect, originalImage: appState.originalImage, finalImage: appState.finalImage, shouldShowOriginalImage: shouldShowOriginalImage, isRunning: appState.isRunning))
                         .resizable()
+                        .interpolation(.none)
+                        .blur(radius: blurRadius(renderSize: geo, imageFrame: imageRect))
                         .frame(width: geo.size.width, height: geo.size.height)
                         .gesture(
                             DragGesture().simultaneously(with: MagnificationGesture())
@@ -111,6 +109,28 @@ struct ImageViewerView: View {
         let pos = CGPoint(x: imageRect.minX * imageScale() + (geo.size.width / 2), y: imageRect.minY * imageScale() + (geo.size.height / 2))
         
         return renderImageInPlace(img, renderSize: geo.size, imageFrame: CGRect(origin: pos, size: rect.size), isRunning: isRunning)
+    }
+    
+    func blurRadius(renderSize: GeometryProxy, imageFrame: CGRect) -> CGFloat {
+        let scale = imageFrame.width / renderSize.size.width
+        
+        if scale > 1 {
+            return 0
+        }
+        
+        if scale > 0.8 {
+            return 0.5
+        }
+        
+        if scale > 0.6 {
+            return 0.7
+        }
+        
+        if scale <= 0.6 {
+            return 1
+        }
+        
+        return 0
     }
     
     func shouldTransformImage(gestureResult: SimultaneousGesture<DragGesture, MagnificationGesture>.Value) {

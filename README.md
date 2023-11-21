@@ -520,8 +520,10 @@ videoDitheringEngine.dither(
 
 Some key takeaways:
 - Using an ordered dither method is faster, and will give the best result as the pattern will not “move” (like static noise).
-- The final video has a framerate of 30. Using a video with less than 30 framerate as input is not supported (yet).
-- Audio is not supported (yet)
+- By default, the final video has a framerate of 30. You may adjust the final framerate by providing a frame rate when initializing VideoDitheringEngine. The final frame rate is less than or equal to the specified value.:
+```swift
+VideoDitheringEngine(frameRate: Int)
+```
 
 ### Video Description
 
@@ -533,7 +535,11 @@ You set the video you want to use as input through the `VideoDescription` type. 
 **Properites**
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| renderSize | CGSize? | nil | Specifies the size for which to render the final dithered video. |
+| renderSize | CGSize? { get set } | nil | Specifies the size for which to render the final dithered video. |
+| framerate | Float? { get } | nominalFrameRate | Returns the number of frames per second. Nil if the asset does not contain video. |
+| duration | TimeInterval { get } | duration.seconds | Returns the duration of the video. |
+| sampleRate | Int? { get } | naturalTimeScale | Returns the number of audio samples per second. Nil if the asset does not contain audio. |
+| size | CGSize? { get } | naturalSize | Returns the size of the video. Nil if the asset does not contain video. |
 
 **Methods**
 

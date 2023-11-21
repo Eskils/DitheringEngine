@@ -17,7 +17,6 @@ struct ToolbarView: View {
     @State var showFilePicker = false
     
     @State var exportURL: URL?
-    @State var showFileExporter = false
     
     @State var error: Error?
     @State var showErrorAlert = false
@@ -106,7 +105,9 @@ struct ToolbarView: View {
         .onChange(of: selection) { didChoose(media: $0) }
         .sheet(isPresented: $showImagePicker) { ImagePicker(selection: $selection) }
         .sheet(isPresented: $showFilePicker) { DocumentPicker(selection: $selection) }
-        .sheet(isPresented: $showFileExporter) { DocumentExporter(exporting: exportURL) }
+        .sheet(item: $exportURL) { url in
+            DocumentExporter(exporting: url)
+        }
         .alert("An error occured", isPresented: $showErrorAlert, actions: {
             Button(action: {}) {
                 Text("Ok")
@@ -173,6 +174,7 @@ struct ToolbarView: View {
     
     @MainActor
     func didPressExport() {
+        self.exportProgress = 0
         if viewModel.isInVideoMode {
             exportVideo()
         } else {
@@ -191,9 +193,6 @@ struct ToolbarView: View {
         do {
             let url = try documentUrlForFile(withName: "DitheredImage.png", storing: imageData)
             exportURL = url
-            DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) {
-                self.showFileExporter = true
-            }
         } catch {
             print("Could not export: ", error)
             self.error = error
@@ -226,9 +225,6 @@ struct ToolbarView: View {
         switch result {
         case .success(let url):
             exportURL = url
-            DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) {
-                self.showFileExporter = true
-            }
         case .failure(let error):
             self.error = error
             self.showErrorAlert = true
@@ -251,4 +247,10 @@ struct ToolbarView: View {
         }
     }
     
+}
+
+extension URL: Identifiable {
+    public var id: String {
+        self.absoluteString
+    }
 }
