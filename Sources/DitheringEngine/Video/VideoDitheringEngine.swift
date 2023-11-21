@@ -57,7 +57,7 @@ public struct VideoDitheringEngine {
         }
         
         let frameRate = videoDescription.expectedFrameRate(frameRateCap: self.frameRate)
-        let sampleRate = videoDescription.sampleRate ?? 0
+        let sampleRate = videoDescription.sampleRate ?? 44100
         
         let size: CGSize
         if let renderSize = videoDescription.renderSize {
@@ -107,9 +107,6 @@ public struct VideoDitheringEngine {
                 floatingColorCache: floatingColorCache
             )
         }
-        
-        let percentFormatter = NumberFormatter()
-        percentFormatter.numberStyle = .percent
         
         do {
             let assetReader = try videoDescription.makeReader()

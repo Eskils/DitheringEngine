@@ -123,7 +123,7 @@ public struct VideoDescription {
         let outputSettings = [AVFormatIDKey: kAudioFormatLinearPCM]
         
         guard let videoTrack = asset.tracks(withMediaType: .audio).first else {
-            throw VideoDescriptionError.assetContainsNoTrackForVideo
+            throw VideoDescriptionError.assetContainsNoTrackForAudio
         }
         
         let trackReaderOutput = AVAssetReaderTrackOutput(track: videoTrack, outputSettings: outputSettings)

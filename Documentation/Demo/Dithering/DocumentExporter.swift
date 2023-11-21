@@ -9,10 +9,10 @@ import SwiftUI
 
 struct DocumentExporter: UIViewControllerRepresentable {
 
-    var exporting: URL?
+    var exporting: URL
 
     func makeUIViewController(context: UIViewControllerRepresentableContext<DocumentExporter>) -> UIDocumentPickerViewController {
-        let picker = UIDocumentPickerViewController(forExporting: [exporting].compactMap({$0}))
+        let picker = UIDocumentPickerViewController(forExporting: [exporting])
         picker.allowsMultipleSelection = false
         return picker
     }
