@@ -11,7 +11,10 @@ import CoreImage
 
 public struct VideoDescription {
     
+    /// The underlying AVAsset.
     public let asset: AVAsset
+    
+    /// Specifies the size for which to render the final dithered video.
     public var renderSize: CGSize?
     
     public init(url: URL) {
@@ -22,6 +25,7 @@ public struct VideoDescription {
         self.asset = asset
     }
     
+    /// Returns the number of frames per second. Nil if the asset does not contain video.
     public var framerate: Float? {
         guard let videoTrack = asset.tracks(withMediaType: .video).first else {
             return nil
@@ -30,6 +34,7 @@ public struct VideoDescription {
         return videoTrack.nominalFrameRate
     }
     
+    /// Returns the duration of the video.
     public var duration: TimeInterval {
         asset.duration.seconds
     }
@@ -52,6 +57,7 @@ public struct VideoDescription {
         return frameRate < expectedFrameRate ? frameRate : expectedFrameRate
     }
     
+    /// Returns the number of audio samples per second. Nil if the asset does not contain audio.
     public var sampleRate: Int? {
         guard let audioTrack = asset.tracks(withMediaType: .audio).first else {
             return nil
@@ -60,6 +66,7 @@ public struct VideoDescription {
         return Int(audioTrack.naturalTimeScale)
     }
     
+    /// Returns the size of the video. Nil if the asset does not contain video.
     public var size: CGSize? {
         guard let videoTrack = asset.tracks(withMediaType: .video).first else {
             return nil

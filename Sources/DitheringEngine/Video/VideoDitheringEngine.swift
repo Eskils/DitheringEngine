@@ -11,6 +11,7 @@ import CoreImage.CIFilterBuiltins
 
 public struct VideoDitheringEngine {
     
+    /// The frame rate for your resulting video.
     public private(set) var frameRate: Float = 30
     
     private let queue = DispatchQueue(label: "com.skillbreak.DitheringEngine", qos: .default, attributes: .concurrent, autoreleaseFrequency: .workItem, target: nil)
@@ -153,14 +154,14 @@ public struct VideoDitheringEngine {
         }
     }
     
-    func transferAudio(audioSamples: VideoDescription.GetAudioHandler, videoAssembler: VideoAssembler) {
+    private func transferAudio(audioSamples: VideoDescription.GetAudioHandler, videoAssembler: VideoAssembler) {
         while let sample = audioSamples.next() {
             videoAssembler.addAudio(sample: sample)
         }
     }
     
     @MainActor
-    func dispatchUntilEmpty(queue: DispatchQueue, contexts: [WorkItemContext], frames: VideoDescription.GetFramesHandler, videoAssembler: VideoAssembler, count: Int = 0, progressHandler: @escaping (Int) -> Void, completion: @escaping () -> Void) {
+    private func dispatchUntilEmpty(queue: DispatchQueue, contexts: [WorkItemContext], frames: VideoDescription.GetFramesHandler, videoAssembler: VideoAssembler, count: Int = 0, progressHandler: @escaping (Int) -> Void, completion: @escaping () -> Void) {
         let numThreads = contexts.count
         let buffers = (0..<numThreads).compactMap { _ in frames.next() }
         let isLastRun = buffers.count != numThreads
@@ -193,7 +194,7 @@ public struct VideoDitheringEngine {
         }
     }
     
-    func dispatch(queue: DispatchQueue, contexts: [WorkItemContext], buffers: [CVPixelBuffer], idempotency: Int, completion: @escaping (Int, [CVPixelBuffer?]) -> Void) {
+    private func dispatch(queue: DispatchQueue, contexts: [WorkItemContext], buffers: [CVPixelBuffer], idempotency: Int, completion: @escaping (Int, [CVPixelBuffer?]) -> Void) {
         let numThreads = min(buffers.count, contexts.count)
         var results = [CVPixelBuffer?](repeating: nil, count: numThreads)
         var responses: Int = 0
@@ -227,13 +228,9 @@ public struct VideoDitheringEngine {
         }
         
     }
- 
-    
-    struct RenderItem {
-        let pixelBuffer: CVPixelBuffer
-        let frame: Int
-    }
-    
+}
+
+extension VideoDitheringEngine {
     struct WorkItemContext {
         private let ditheringEngine: DitheringEngine
         private let context: CIContext
@@ -288,26 +285,26 @@ public struct VideoDitheringEngine {
             return pixelBuffer
         }
     
-    private func ciImageToCVPixelBuffer(image: CIImage, context: CIContext) -> CVPixelBuffer? {
-        var pixelBuffer: CVPixelBuffer?
-        let width = Int(image.extent.width)
-        let height = Int(image.extent.height)
-        let attrs = [
-              kCVPixelBufferCGImageCompatibilityKey: true,
-              kCVPixelBufferCGBitmapContextCompatibilityKey: true,
-              kCVPixelBufferWidthKey: Int(image.extent.width),
-              kCVPixelBufferHeightKey: Int(image.extent.height)
-            ] as CFDictionary
-        CVPixelBufferCreate(kCFAllocatorDefault, width, height, kCVPixelFormatType_32BGRA, attrs, &pixelBuffer)
-        
-        guard let pixelBuffer else {
-            return nil
+        private func ciImageToCVPixelBuffer(image: CIImage, context: CIContext) -> CVPixelBuffer? {
+            var pixelBuffer: CVPixelBuffer?
+            let width = Int(image.extent.width)
+            let height = Int(image.extent.height)
+            let attrs = [
+                  kCVPixelBufferCGImageCompatibilityKey: true,
+                  kCVPixelBufferCGBitmapContextCompatibilityKey: true,
+                  kCVPixelBufferWidthKey: Int(image.extent.width),
+                  kCVPixelBufferHeightKey: Int(image.extent.height)
+                ] as CFDictionary
+            CVPixelBufferCreate(kCFAllocatorDefault, width, height, kCVPixelFormatType_32BGRA, attrs, &pixelBuffer)
+            
+            guard let pixelBuffer else {
+                return nil
+            }
+            
+            context.render(image, to: pixelBuffer)
+            
+            return pixelBuffer
         }
-        
-        context.render(image, to: pixelBuffer)
-        
-        return pixelBuffer
-    }
         
         
     }
