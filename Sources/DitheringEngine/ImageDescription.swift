@@ -156,12 +156,17 @@ extension GenericImageDescription where Color == UInt8 {
         
         guard
             let dataProvider = image.dataProvider,
-            let data = dataProvider.data
+            let data = dataProvider.data,
+            let pointer = CFDataGetBytePtr(data)
         else {
             return false
         }
         
-        CFDataGetBytes(data, CFRange(location: 0, length: count), buffer)
+        let expectedBytesPerRow = self.bytesPerRow
+        
+        for row in 0..<image.height {
+            self.buffer.advanced(by: expectedBytesPerRow * row).update(from: pointer.advanced(by: image.bytesPerRow * row), count: expectedBytesPerRow)
+        }
         
         return true
     }
@@ -178,16 +183,26 @@ extension GenericImageDescription where Color == UInt8 {
             return false
         }
         
-        for i in 0..<count {
-            let b = baseAddress[4 * i + 0]
-            let g = baseAddress[4 * i + 1]
-            let r = baseAddress[4 * i + 2]
-            let a = baseAddress[4 * i + 3]
-            
-            buffer[4 * i + 0] = r
-            buffer[4 * i + 1] = g
-            buffer[4 * i + 2] = b
-            buffer[4 * i + 3] = a
+        let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
+        
+        for row in 0..<height {
+            for col in 0..<width {
+                let inputOffset = row * bytesPerRow
+                let outputOffset = self.bytesPerRow * row
+                
+                let inputPointer = baseAddress.advanced(by: inputOffset)
+                let outputPointer = buffer.advanced(by: outputOffset)
+                
+                let b = inputPointer[4 * col + 0]
+                let g = inputPointer[4 * col + 1]
+                let r = inputPointer[4 * col + 2]
+                let a = inputPointer[4 * col + 3]
+                
+                outputPointer[4 * col + 0] = r
+                outputPointer[4 * col + 1] = g
+                outputPointer[4 * col + 2] = b
+                outputPointer[4 * col + 3] = a
+            }
         }
         
         CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly)
@@ -226,16 +241,24 @@ extension GenericImageDescription where Color == UInt8 {
         
         guard
             let context = CGContext(
-                data: buffer,
+                data: nil,
                 width: width,
                 height: height,
                 bitsPerComponent: MakeImage.bitsPerComponent,
-                bytesPerRow: bytesPerRow,
+                bytesPerRow: 0,
                 space: component.colorSpace,
                 bitmapInfo: component.bitmapInfo
             )
         else {
             throw MakeImage.Error.failedToCreateCGContext
+        }
+        
+        guard let data = context.data?.assumingMemoryBound(to: UInt8.self) else {
+            throw MakeImage.Error.failedToCreateDataFromCGContext
+        }
+        
+        for row in 0..<height {
+            data.advanced(by: context.bytesPerRow * row).update(from: buffer.advanced(by: bytesPerRow * row), count: bytesPerRow)
         }
         
         guard let image = context.makeImage() else {
@@ -250,39 +273,56 @@ extension GenericImageDescription where Color == UInt8 {
         var pixelBuffer: CVPixelBuffer?
         let attrs = [
             kCVPixelBufferCGImageCompatibilityKey: true,
-            kCVPixelBufferCGBitmapContextCompatibilityKey: false,
+            kCVPixelBufferCGBitmapContextCompatibilityKey: true,
             kCVPixelBufferWidthKey: width,
             kCVPixelBufferHeightKey: height
         ] as CFDictionary
         
-        for i in 0..<count {
-            let r = buffer[4 * i + 0]
-            let g = buffer[4 * i + 1]
-            let b = buffer[4 * i + 2]
-            let a = buffer[4 * i + 3]
-            
-            invertedColorBuffer[4 * i + 0] = b
-            invertedColorBuffer[4 * i + 1] = g
-            invertedColorBuffer[4 * i + 2] = r
-            invertedColorBuffer[4 * i + 3] = a
-        }
-        
-        let status = CVPixelBufferCreateWithBytes(
+        let status = CVPixelBufferCreate(
             kCFAllocatorDefault,
             width,
             height,
             kCVPixelFormatType_32BGRA,
-            invertedColorBuffer,
-            bytesPerRow,
-            nil,
-            nil,
             attrs,
             &pixelBuffer
         )
         
-        guard let pixelBuffer, status == kCVReturnSuccess else {
+        guard
+            let pixelBuffer,
+            status == kCVReturnSuccess
+        else {
             throw MakeImage.Error.failedToCreateCVPixelBuffer(status: status)
         }
+        
+        CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly)
+        
+        guard let baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer)?.assumingMemoryBound(to: UInt8.self) else {
+            throw MakeImage.Error.failedToGetCVPixelBufferBaseAddress
+        }
+        
+        let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
+        
+        for row in 0..<height {
+            for col in 0..<width {
+                let bufferOffset = self.bytesPerRow * row
+                let cvPixelBufferOffset = bytesPerRow * row
+                
+                let bufferPointer = buffer.advanced(by: bufferOffset)
+                let cvPixelBufferPointer = baseAddress.advanced(by: cvPixelBufferOffset)
+                
+                let r = bufferPointer[4 * col + 0]
+                let g = bufferPointer[4 * col + 1]
+                let b = bufferPointer[4 * col + 2]
+                let a = bufferPointer[4 * col + 3]
+                
+                cvPixelBufferPointer[4 * col + 0] = b
+                cvPixelBufferPointer[4 * col + 1] = g
+                cvPixelBufferPointer[4 * col + 2] = r
+                cvPixelBufferPointer[4 * col + 3] = a
+            }
+        }
+        
+        CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly)
         
         return pixelBuffer
     }
@@ -295,8 +335,10 @@ extension GenericImageDescription where Color == UInt8 {
         enum Error: Swift.Error {
             case invalidNumberOfComponents
             case failedToCreateCGContext
+            case failedToCreateDataFromCGContext
             case failedToCreateImage
             case failedToCreateCVPixelBuffer(status: CVReturn)
+            case failedToGetCVPixelBufferBaseAddress
         }
     }
     

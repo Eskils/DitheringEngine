@@ -134,8 +134,8 @@ extension ToolbarView {
                             try FileManager.default.removeItem(at: outputURL)
                         }
                         print("Output URL: ", outputURL)
-                        
-                        originalVideo.renderSize = CGSize(width: 320, height: 1)
+                        //FIXME: Support landscape video
+                        originalVideo.renderSize = CGSize(width: 360, height: 1)
                         videoDitheringEngine.dither(videoDescription: originalVideo, usingMethod: ditherMethod, andPalette: palette, withDitherMethodSettings: additionalDitherMethodSetting.settingsConfiguration, andPaletteSettings: additionalPalleteSettings.settingsConfiguration, outputURL: outputURL, progressHandler: progressHandler) { error in
                             timer.invalidate()
                             DispatchQueue.main.async {

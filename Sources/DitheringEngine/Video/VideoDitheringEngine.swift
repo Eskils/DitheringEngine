@@ -218,13 +218,12 @@ public struct VideoDitheringEngine {
                     }
                 }
                 
-                guard
-                    let result = try? context.scaleAndDither(pixelBuffer: pixelBuffer)
-                else {
-                    return
+                do {
+                    let result = try context.scaleAndDither(pixelBuffer: pixelBuffer)
+                    results[i] = result
+                } catch {
+                    print("Failed to scale and dither frame: \(error)")
                 }
-                
-                results[i] = result
             }
         }
         
@@ -272,9 +271,10 @@ public struct VideoDitheringEngine {
                 scaleFilter.scale = 1
             }
             
+            //FIXME: Remove invertColorBuffer
             if let scaledImage = scaleFilter.outputImage,
-               let renderedImage = context.createCGImage(scaledImage, from: scaledImage.extent) {
-                try ditheringEngine.set(image: renderedImage)
+               let renderedImage = ciImageToCVPixelBuffer(image: scaledImage, context: context) {
+                try ditheringEngine.set(pixelBuffer: renderedImage)
             } else {
                 print("Failed to resize image")
                 try ditheringEngine.set(pixelBuffer: pixelBuffer)
@@ -299,7 +299,7 @@ public struct VideoDitheringEngine {
         let height = Int(image.extent.height)
         let attrs = [
               kCVPixelBufferCGImageCompatibilityKey: true,
-              kCVPixelBufferCGBitmapContextCompatibilityKey: false,
+              kCVPixelBufferCGBitmapContextCompatibilityKey: true,
               kCVPixelBufferWidthKey: Int(image.extent.width),
               kCVPixelBufferHeightKey: Int(image.extent.height)
             ] as CFDictionary
