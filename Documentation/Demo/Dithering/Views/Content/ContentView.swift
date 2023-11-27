@@ -4,6 +4,9 @@ import DitheringEngine
 
 struct ContentView: View {
     
+    @Environment(\.horizontalSizeClass)
+    var horizontalSizeClass
+    
     let ditheringEngine: DitheringEngine
     let videoDitheringEngine: VideoDitheringEngine
     
@@ -21,13 +24,51 @@ struct ContentView: View {
     let ditherMethodSetting = DitherMethod.setting
     
     var body: some View {
-        HStack {
+        #if targetEnvironment(macCatalyst)
+        macCatalystLayout()
+        #else
+        if horizontalSizeClass == .regular {
+            regularRegularLayout()
+        } else {
+            regularCompactLayout()
+        }
+        #endif
+    }
+    
+    @MainActor
+    @ViewBuilder
+    func macCatalystLayout() -> some View {
+        NavigationView {
             ToolbarView(ditheringEngine: ditheringEngine, videoDitheringEngine: videoDitheringEngine, appState: appState)
-            .frame(width: 300)
+                .frame(width: 300)
+                .listStyle(.sidebar)
             
             ImageViewerView(appState: appState)
         }
     }
     
+    @MainActor
+    @ViewBuilder
+    func regularRegularLayout() -> some View {
+        HStack {
+            ToolbarView(ditheringEngine: ditheringEngine, videoDitheringEngine: videoDitheringEngine, appState: appState)
+                .frame(width: 300)
+            
+            ImageViewerView(appState: appState)
+        }
+    }
+    
+    @MainActor
+    @ViewBuilder
+    func regularCompactLayout() -> some View {
+        ScrollView {
+            VStack {
+                ImageViewerView(appState: appState)
+                    .aspectRatio(1, contentMode: .fit)
+                
+                ToolbarView(ditheringEngine: ditheringEngine, videoDitheringEngine: videoDitheringEngine, appState: appState)
+            }
+        }
+    }
     
 }

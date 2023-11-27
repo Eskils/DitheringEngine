@@ -59,29 +59,20 @@ struct ToolbarView: View {
                     Label(title: { Text("Choose from Photos") },
                           icon: SF.photo.on.rectangle.swiftUIImage)
                 }
+                .buttonStyle(BorderedButtonStyle())
                 
                 Button(action: didPressChooseImageFromFile) {
                     Label(title: { Text("Choose from file") },
-                          icon: SF.photo.on.rectangle.swiftUIImage)
+                          icon: SF.folder.swiftUIImage)
                 }
-                
-                Button { didPressExport() } label: {
-                    Label(title: { Text(viewModel.isInVideoMode ? "Export dithered video" : "Export dithered image") },
-                          icon: SF.square.and.arrow.up.swiftUIImage)
-                }
-                
-                if isExporting {
-                    HStack {
-                        ProgressView("Export progress", value: exportProgress)
-                        Text(percentFormat.string(for: exportProgress) ?? "--")
-                    }
-                }
+                .buttonStyle(BorderedButtonStyle())
             }
             
             Divider()
             
             VStack {
                 Text("Dithering")
+                    .bold()
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
                 SettingsView(fromDescriptions: viewModel.ditherMethodSetting.views)
@@ -93,6 +84,7 @@ struct ToolbarView: View {
             
             VStack() {
                 Text("Palette")
+                    .bold()
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
                 SettingsView(fromDescriptions: viewModel.paletteSelectionSetting.views)
@@ -100,6 +92,24 @@ struct ToolbarView: View {
                 SettingsView(fromDescriptions: viewModel.additionalPaletteSelectionSetting.views)
             }
             
+            Divider()
+            
+            VStack {
+                Button { didPressExport() } label: {
+                    Label(title: { Text(viewModel.isInVideoMode ? "Export dithered video" : "Export dithered image") },
+                          icon: SF.square.and.arrow.up.swiftUIImage)
+                }
+                .buttonStyle(BorderedProminentButtonStyle())
+                .foregroundStyle(Color.white)
+                
+                if isExporting {
+                    HStack {
+                        ProgressView("Export progress", value: exportProgress)
+                        Text(percentFormat.string(for: exportProgress) ?? "--")
+                    }
+                }
+                
+            }
         }
         .padding(8)
         .onChange(of: selection) { didChoose(media: $0) }
