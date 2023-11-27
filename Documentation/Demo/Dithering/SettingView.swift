@@ -156,8 +156,10 @@ struct EnumSettingView<Enum: Nameable>: View {
         }
         
         VStack {
+            #if !targetEnvironment(macCatalyst)
             TitleLabel(title: description.title)
                 .frame(maxWidth: .infinity)
+            #endif
             
             Picker(description.title, selection: bindedValue) {
                 ForEach(description.options) { option in

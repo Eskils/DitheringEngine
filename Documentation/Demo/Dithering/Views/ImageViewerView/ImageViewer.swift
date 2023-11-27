@@ -23,6 +23,7 @@ struct ImageViewerView: View {
     @State var shouldShowOriginalImage: Bool = false
     
     @Environment(\.safeAreaInsets) var safeAreaInsets
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     init(appState: AppState) {
         self._appState = StateObject(wrappedValue: appState)
@@ -52,24 +53,36 @@ struct ImageViewerView: View {
                 }
                 
                 VStack(spacing: 20) {
-                    Button(action: {},
+                    Button(action: { shouldShowOriginalImage = !shouldShowOriginalImage },
                            label: {
-                        SF.square.split._2x1.swiftUIImage()
+                        (shouldShowOriginalImage
+                            ? SF.square.and.line.vertical.and.square.filled.swiftUIImage()
+                            : SF.square.and.line.vertical.and.square.swiftUIImage())
                             .resizable()
                             .frame(width: 25, height: 25)
                     })
-                    ._onButtonGesture(pressing: didPressShowOriginal(showOriginal:), perform: {})
+                    #if !targetEnvironment(macCatalyst)
+                    .tint(.white)
+                    .buttonStyle(BorderedProminentButtonStyle())
+                    .foregroundStyle(Color.accentColor)
+                    #endif
                     
                     Button(action: didPressMoveToHome) {
                         SF.house.swiftUIImage()
                             .resizable()
                             .frame(width: 25, height: 25)
                     }
+                    #if !targetEnvironment(macCatalyst)
+                    .tint(.white)
+                    .buttonStyle(BorderedProminentButtonStyle())
+                    .foregroundStyle(Color.accentColor)
+                    #endif
                     
                     Spacer()
                 }
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .padding(.trailing, 16)
+                .padding(.top, 16)
                 
             }.background(Color(UIColor.systemGray6))
         }

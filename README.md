@@ -1,5 +1,5 @@
 ![DitheringEngine](Documentation/Resources/DitheringEngineLogo.png)
-# DitheringEngine
+# Dithering Engine
 
 Framework for iOS and Mac Catalyst to dither images and videos.
 
@@ -9,30 +9,80 @@ Dithering is the process of adding noise to an image in order for us to perceive
 
 > This image has only four colors: black, white, cyan, and magenta.
 
-Check out the [demo application](./Documentation/Demo/) for iPadOS and macOS.
+Check out the [demo application](./Documentation/Demo/) for iOS and macOS.
+
+## Table of contents
+   * [Installation](#installation)
+   * [Usage](#usage)
+      * [Dithering images](#dithering-images)
+      * [Dithering videos](#dithering-videos)
+   * [Dithering methods](#dithering-methods)
+      * [Threshold](#threshold)
+      * [Floyd-Steinberg](#floyd-steinberg)
+      * [Atkinson](#atkinson)
+      * [Jarvis-Judice-Ninke](#jarvis-judice-ninke)
+      * [Bayer](#bayer)
+      * [White noise](#white-noise)
+      * [Noise](#noise)
+   * [Built-in palettes](#built-in-palettes)
+      * [Black & White](#black--white)
+      * [Grayscale](#grayscale)
+      * [Quantized Color](#quantized-color)
+      * [CGA](#cga)
+      * [Apple II](#apple-ii)
+      * [Game Boy](#game-boy)
+   * [Creating your own palette](#creating-your-own-palette)
+   * [Video Dithering Engine](#video-dithering-engine)
+     * [Video Description](#video-description)
+
+## Installation
+To use this package in a SwiftPM project, you need to set it up as a package dependency:
+
+```swift
+// swift-tools-version:5.9
+import PackageDescription
+
+let package = Package(
+  name: "MyPackage",
+  dependencies: [
+    .package(
+      url: "https://github.com/Eskils/DitheringEngine", 
+      .upToNextMinor(from: "1.6.1") // or `.upToNextMajor
+    )
+  ],
+  targets: [
+    .target(
+      name: "MyTarget",
+      dependencies: [
+        .product(name: "DitheringEngine", package: "DitheringEngine")
+      ]
+    )
+  ]
+)
+```
 
 ## Usage
 
 The engine works on CGImages and video URLs/AVAsset.
 
 Supported dithering methods are: 
-  - Threshold
-  - Floyd Steinberg
-  - Atkinson
-  - Jarvis-Judice-Ninke
-  - Bayer (Ordered dithering)
-  - White noise (Ordered dithering)
-  - Noise (Ordered dithering)
+  * [Threshold](#threshold)
+  * [Floyd-Steinberg](#floyd-steinberg)
+  * [Atkinson](#atkinson)
+  * [Jarvis-Judice-Ninke](#jarvis-judice-ninke)
+  * [Bayer (Ordered dithering)](#bayer)
+  * [White noise (Ordered dithering)](#white-noise)
+  * [Noise (Ordered dithering)](#noise)
   
   > **NOTE:** The ordered dither methods are computed on the GPU using Metal by default. You can specify to run them on the CPU if desired.
 
 Supported out of the box palettes are:
-  - Black & White
-  - Grayscale
-  - Quantized Color
-  - Apple ][
-  - Game Boy
-  - CGA 
+  * [Black & White](#black--white)
+  * [Grayscale](#grayscale)
+  * [Quantized Color](#quantized-color)
+  * [CGA](#cga)
+  * [Apple II](#apple-ii)
+  * [Game Boy](#game-boy)
 
 ### Dithering images
 Example usage: 
@@ -72,11 +122,11 @@ videoDitheringEngine.dither(
 )
 ```
 
-### Dithering methods
+## Dithering methods
 
 Here is an overview over the available dithering methods.
 
-#### Threshold
+### Threshold
 
 Threshold gives the nearest match of the color in the image to the color in the palette without adding any noise or improvements.
 
@@ -97,7 +147,7 @@ let cgImage = try ditheringEngine.dither(
 )
 ```
 
-#### Floyd-Steinberg
+### Floyd-Steinberg
 
 Floyd-Steinberg dithering spreads the error from reducing the color of a pixel to the neighbouring pixels—yielding an image looking close to the original in areas of fine detail (e.g. grass and trees) and with interesting artifacts in areas of little detail (e.g. the sky).
 
@@ -129,7 +179,7 @@ let cgImage = try ditheringEngine.dither(
 )
 ```
 
-#### Atkinson
+### Atkinson
 
 Atkinson dithering is a variant of Floyd-Steinberg dithering, and works by spreading error from reducing the color of a pixel to the neighbouring pixels. Atkinson spreads over a larger area, but does not distribute the full error—making colors matching the palette have less noise.
 
@@ -150,7 +200,7 @@ let cgImage = try ditheringEngine.dither(
 )
 ```
 
-#### Jarvis-Judice-Ninke
+### Jarvis-Judice-Ninke
 
 Jarvis-Judice-Ninke dithering is a variant of Floyd-Steinberg dithering, and works by spreading error from reducing the color of a pixel to the neighbouring pixels. This method spreads distributes the error over a larger area and therefore leaves a smoother look to your image.
 
@@ -171,7 +221,7 @@ let cgImage = try ditheringEngine.dither(
 )
 ```
 
-#### Bayer
+### Bayer
 
 Bayer dithering is a type of ordered dithering which adds a precalculated threshold to every pixel, baking in a special pattern.
 
@@ -197,7 +247,7 @@ let cgImage = try ditheringEngine.dither(
 )
 ```
 
-#### White noise
+### White noise
 
 White noise dithering adds random noise to the image when converting to the selected palette, leaving a grained and messy look to your image.
 
@@ -223,7 +273,7 @@ let cgImage = try ditheringEngine.dither(
 )
 ```
 
-#### Noise
+### Noise
 
 You can provide your own noise texture to sample when performing ordered dithering.
 
@@ -252,11 +302,11 @@ let cgImage = try ditheringEngine.dither(
 )
 ```
 
-### Built-in palettes
+## Built-in palettes
 
 Here is an overview of the built-in palettes:
 
-#### Black & White
+### Black & White
 
 A palette with the two colors: black, and white.
 
@@ -277,7 +327,7 @@ let cgImage = try ditheringEngine.dither(
 )
 ```
 
-#### Grayscale
+### Grayscale
 
 A palette with all shades of gray.
 
@@ -302,7 +352,7 @@ let cgImage = try ditheringEngine.dither(
 )
 ```
 
-#### Quantized Color
+### Quantized Color
 
 A palette with quantized bits for the color channel. Specify the number of bits to use for color—from 0 to 8. The number of colors is given by 2^n where n is the number of bits.
 
@@ -327,7 +377,7 @@ let cgImage = try ditheringEngine.dither(
 )
 ```
 
-#### CGA
+### CGA
 
 A palette with the oldschool CGA palettes. CGA was a graphics card introduced in 1981 with the ability to display colour on the IBM PC. It used a 4 bit interface (Red, Green, Blue, Intensity) giving a total of 16 possible colors. Due to limited video memory however, the most common resolution of 320x200 would only allow you four colors on screen simultaneously. In this mode, d developer could choose from four palettes, with beautiful colour combinations such as black, cyan, magenta and white or black, green, red and yellow.
 
@@ -363,7 +413,7 @@ let cgImage = try ditheringEngine.dither(
 )
 ```
 
-#### Apple ][
+### Apple II
 
 The Apple II was one of the first personal computers with color. Technical challenges related to reducing cost enabled two modes for graphics—a high resolution mode with six colors, and a low resolution mode with 16 colors.
 
@@ -396,7 +446,7 @@ let cgImage = try ditheringEngine.dither(
 )
 ```
 
-#### Game Boy
+### Game Boy
 
 Oldschool four color green-shaded monochrome display.
 
@@ -489,7 +539,7 @@ try ditheringEngine.dither(
 )
 ```
 
-## Dithering videos (Beta)
+## Video Dithering Engine
 
 In addition to `DitheringEngine` dithering images, `VideoDitheringEngine` exists to dither videos. The VideoDitheringEngine works by applying a palette and dither method to every frame in the video. You may also choose to resize the video as part of this process.
 
