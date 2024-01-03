@@ -78,6 +78,7 @@ public struct VideoDescription {
     /// Reads the first frame in the video as an image.
     public func getPreviewImage() async throws -> CGImage {
         let assetImageGenerator = AVAssetImageGenerator(asset: asset)
+        assetImageGenerator.appliesPreferredTrackTransform = true
         let time = CMTime.zero
         
         if #available(iOS 16, macCatalyst 16, *) {
