@@ -47,7 +47,7 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/Eskils/DitheringEngine", 
-      .upToNextMinor(from: "1.6.2") // or `.upToNextMajor
+      .upToNextMinor(from: "1.6.3") // or `.upToNextMajor
     )
   ],
   targets: [
