@@ -77,7 +77,7 @@ public struct VideoDitheringEngine {
         
         let videoAssembler: VideoAssembler
         do {
-            videoAssembler = try VideoAssembler(outputURL: outputURL, width: Int(size.width.rounded()), height: Int(size.height.rounded()), framerate: Int(frameRate), sampleRate: sampleRate, emitFrames: true)
+            videoAssembler = try VideoAssembler(outputURL: outputURL, width: Int(size.width.rounded()), height: Int(size.height.rounded()), framerate: Int(frameRate), sampleRate: sampleRate, transform: videoDescription.transform, emitFrames: false)
         } catch {
             completionHandler(error)
             return
