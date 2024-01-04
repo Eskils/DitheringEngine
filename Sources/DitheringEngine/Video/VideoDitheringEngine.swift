@@ -29,7 +29,8 @@ public struct VideoDitheringEngine {
         self.frameRate = Float(frameRate)
     }
     
-    public func dither(video url: URL, resizingTo size: CGSize?, usingMethod ditherMethod: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherMethodSettings: SettingsConfiguration, andPaletteSettings paletteSettings: SettingsConfiguration, outputURL: URL, progressHandler: ((Float) -> Void)? = nil, completionHandler: @escaping (Error?) -> Void) {
+    /// Dither video from url using method and palette. Set options and outputURL. ProgressHandler needs a return of `true` to continue, returning false will cancell the dithering and yield an `VideoDitheringError.cancelled` failure in the completion callback.
+    public func dither(video url: URL, resizingTo size: CGSize?, usingMethod ditherMethod: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherMethodSettings: SettingsConfiguration, andPaletteSettings paletteSettings: SettingsConfiguration, options: VideoDitherOptions = .none, outputURL: URL, progressHandler: ((Float) -> Bool)? = nil, completionHandler: @escaping (Error?) -> Void) {
         var videoDescription = VideoDescription(url: url)
         
         if let size {
@@ -42,13 +43,15 @@ public struct VideoDitheringEngine {
             andPalette: palette,
             withDitherMethodSettings: ditherMethodSettings,
             andPaletteSettings: paletteSettings,
+            options: options,
             outputURL: outputURL,
             progressHandler: progressHandler,
             completionHandler: completionHandler
         )
     }
     
-    public func dither(videoDescription: VideoDescription, usingMethod ditherMethod: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherMethodSettings: SettingsConfiguration, andPaletteSettings paletteSettings: SettingsConfiguration, outputURL: URL, progressHandler: ((Float) -> Void)? = nil, completionHandler: @escaping (Error?) -> Void) {
+    /// Dither video using method and palette. Set options and outputURL. ProgressHandler needs a return of `true` to continue, returning false will cancell the dithering and yield an `VideoDitheringError.cancelled` failure in the completion callback.
+    public func dither(videoDescription: VideoDescription, usingMethod ditherMethod: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherMethodSettings: SettingsConfiguration, andPaletteSettings paletteSettings: SettingsConfiguration, options: VideoDitherOptions = .none, outputURL: URL, progressHandler: ((Float) -> Bool)? = nil, completionHandler: @escaping (Error?) -> Void) {
         
         guard 
             let originalSize = videoDescription.size
@@ -86,7 +89,7 @@ public struct VideoDitheringEngine {
         let lutPalette = palette.lut(fromPalettes: Palettes(), settings: paletteSettings)
         let byteColorCache: ByteByteColorCache?
         let floatingColorCache: FloatByteColorCache?
-        if case .lutCollection(let collection) = lutPalette.type {
+        if case .lutCollection(let collection) = lutPalette.type, options.contains(.precalculateDitheredColorForAllColors) {
             byteColorCache = .populateWitColors(fromLUT: collection)
             floatingColorCache = byteColorCache?.toFloatingWithoutCopy()
         } else {
@@ -108,9 +111,19 @@ public struct VideoDitheringEngine {
             )
         }
         
+        if progressHandler?(0) == false {
+            videoAssembler.cancelVideoGeneration()
+            completionHandler(VideoDitheringError.cancelled)
+            return
+        }
+        
         do {
             let assetReader = try videoDescription.makeReader()
             let frames = try videoDescription.getFrames(assetReader: assetReader, frameRateCap: frameRate)
+            
+            #if DEBUG
+            print("Opening audio track")
+            #endif
             
             let audioSamples: VideoDescription.GetAudioHandler?
             do {
@@ -125,17 +138,31 @@ public struct VideoDitheringEngine {
                 }
             }
             
+            #if DEBUG
+            print("Finished opening audio track, starting to open frames")
+            #endif
+            
             videoDescription.startReading(reader: assetReader)
             
             DispatchQueue.main.async {
                 dispatchUntilEmpty(queue: queue, contexts: workItemContexts, frames: frames, videoAssembler: videoAssembler) { batchNumber in
                     if let progressHandler {
                         let progress = min(1, Float(batchNumber) / Float(numberOfBatches))
-                        progressHandler(progress)
+                        return progressHandler(progress)
                     }
-                } completion: {
+                    
+                    return true
+                } completion: { wasCanceled in
+                    if wasCanceled {
+                        frames.cancel()
+                        audioSamples?.cancel()
+                        videoAssembler.cancelVideoGeneration()
+                        completionHandler(VideoDitheringError.cancelled)
+                        return
+                    }
+                    
                     print("Finished adding all frames")
-                    if let audioSamples {
+                    if let audioSamples, !options.contains(.removeAudio) {
                         transferAudio(audioSamples: audioSamples, videoAssembler: videoAssembler)
                         print("Finished adding audio")
                     }
@@ -161,14 +188,19 @@ public struct VideoDitheringEngine {
     }
     
     @MainActor
-    private func dispatchUntilEmpty(queue: DispatchQueue, contexts: [WorkItemContext], frames: VideoDescription.GetFramesHandler, videoAssembler: VideoAssembler, count: Int = 0, progressHandler: @escaping (Int) -> Void, completion: @escaping () -> Void) {
+    private func dispatchUntilEmpty(queue: DispatchQueue, contexts: [WorkItemContext], frames: VideoDescription.GetFramesHandler, videoAssembler: VideoAssembler, count: Int = 0, progressHandler: @escaping (Int) -> Bool, completion: @escaping (_ wasCanceled: Bool) -> Void) {
         let numThreads = contexts.count
         let buffers = (0..<numThreads).compactMap { _ in frames.next() }
         let isLastRun = buffers.count != numThreads
         var idempotency = 0
         dispatch(queue: queue, contexts: contexts, buffers: buffers, idempotency: idempotency) { receivedIdempotency, results in
             
-            progressHandler(count)
+            let shouldContinue = progressHandler(count)
+            
+            if !shouldContinue {
+                completion(true)
+                return
+            }
             
             if receivedIdempotency != idempotency {
                 return
@@ -183,7 +215,7 @@ public struct VideoDitheringEngine {
             }
             
             if isLastRun {
-                completion()
+                completion(false)
             }
             
             if isLastRun {
@@ -308,4 +340,29 @@ extension VideoDitheringEngine {
         
         
     }
+}
+
+public enum VideoDitheringError: Error {
+    case cancelled
+}
+
+public struct VideoDitherOptions: OptionSet {
+    public let rawValue: Int
+    
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+    
+    /// Default video dithering.
+    public static let none = Self(rawValue: 0)
+    
+    /// Makes an indexed map of all colors to dithered color.
+    /// Adds an increased wait time in the begining.
+    /// Might be faster with large LUTCollections. Do not use with LUT which is already index based.
+    public static let precalculateDitheredColorForAllColors = Self(rawValue: 1 << 0)
+    
+    /// Does not transfer audio from the original video file.
+    public static let removeAudio = Self(rawValue: 1 << 1)
+    
+    
 }
