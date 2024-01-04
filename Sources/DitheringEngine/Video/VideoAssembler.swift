@@ -25,7 +25,7 @@ class VideoAssembler {
     
     private var framecount: Int = 0
     
-    init(outputURL: URL, width: Int, height: Int, framerate: Int, sampleRate: Int, emitFrames: Bool = false) throws {
+    init(outputURL: URL, width: Int, height: Int, framerate: Int, sampleRate: Int, transform: CGAffineTransform? = nil, emitFrames: Bool = false) throws {
         self.width = width
         self.height = height
         self.framerate = framerate
@@ -48,6 +48,9 @@ class VideoAssembler {
         ] as [String : Any]
         
         self.videoInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
+        if let transform {
+            videoInput.transform = transform
+        }
         self.videoInputAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: videoInput, sourcePixelBufferAttributes: nil)
         
         self.audioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
