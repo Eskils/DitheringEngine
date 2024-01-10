@@ -33,6 +33,10 @@ Check out the [demo application](./Documentation/Demo/) for iOS and macOS.
       * [Game Boy](#game-boy)
    * [Creating your own palette](#creating-your-own-palette)
    * [Video Dithering Engine](#video-dithering-engine)
+     * [Ordered dithering is more suitable](#ordered-dithering-is-more-suitable)
+     * [Video framerate](#video-framerate)
+     * [Concurrent frame processing](#concurrent-frame-processing)
+     * [Video Dither Options](#video-dither-options)
      * [Video Description](#video-description)
 
 ## Installation
@@ -568,12 +572,30 @@ videoDitheringEngine.dither(
 )
 ```
 
-Some key takeaways:
-- Using an ordered dither method is faster, and will give the best result as the pattern will not “move” (like static noise).
-- By default, the final video has a framerate of 30. You may adjust the final framerate by providing a frame rate when initializing VideoDitheringEngine. The final frame rate is less than or equal to the specified value.:
+### Ordered dithering is more suitable
+
+Using an ordered dither method is faster, and will give the best result as the pattern will not “move” (like static noise).
+
+### Video framerate
+
+By default, the final video has a framerate of 30. You may adjust the final framerate by providing a frame rate when initializing VideoDitheringEngine. The final frame rate is less than or equal to the specified value.:
 ```swift
 VideoDitheringEngine(frameRate: Int)
 ```
+
+### Concurrent frame processing
+
+By default, video frames are rendered concurrently. You can disable this behaviour, or change the number of frames processed simultaneously using the `numberOfConcurrentFrames` property. 
+
+Setting this to 1 will effectively disable concurrent frame processing. A higher number will be faster if the CPU has enough cores to handle the load, but will also use more memory.
+
+### Video Dither Options
+
+When dithering a video, you may provide options for how the video should be processed. The following options are available:
+
+- `precalculateDitheredColorForAllColors`: Makes an indexed map of all colors to dithered color. This adds an increased wait time in the begining. Might be faster with large LUTCollections (e.g. CGA) and longer videos. Is ignored with LUT (e.g. Quantized Color) which is already index based.
+
+- `removeAudio`: Does not transfer audio from the original video.
 
 ### Video Description
 
@@ -587,6 +609,7 @@ You set the video you want to use as input through the `VideoDescription` type. 
 |------|------|---------|-------------|
 | renderSize | CGSize? { get set } | nil | Specifies the size for which to render the final dithered video. |
 | framerate | Float? { get } | nominalFrameRate | Returns the number of frames per second. Nil if the asset does not contain video. |
+| transform| CGAffineTransform? { get } | preferredTransform | The transfor (orientation, scale) of the video.
 | duration | TimeInterval { get } | duration.seconds | Returns the duration of the video. |
 | sampleRate | Int? { get } | naturalTimeScale | Returns the number of audio samples per second. Nil if the asset does not contain audio. |
 | size | CGSize? { get } | naturalSize | Returns the size of the video. Nil if the asset does not contain video. |
