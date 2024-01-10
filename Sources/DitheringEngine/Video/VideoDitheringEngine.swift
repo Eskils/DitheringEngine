@@ -16,10 +16,16 @@ public struct VideoDitheringEngine {
     
     private let queue = DispatchQueue(label: "com.skillbreak.DitheringEngine", qos: .default, attributes: .concurrent, autoreleaseFrequency: .workItem, target: nil)
     
-    /// Number of frames to process concurrently (per batch)
-    private let workItems = 5
+    /// Number of frames to process concurrently (per batch). Default is 5. A greater number might be faster, but will use more memory.
+    public var numberOfConcurrentFrames = 5
     
-    public init() {}
+    private var workItems: Int {
+        numberOfConcurrentFrames
+    }
+    
+    public init(numberOfConcurrentFrames: Int = 5) {
+        self.numberOfConcurrentFrames = numberOfConcurrentFrames
+    }
     
     /// Provide the frame rate for your resulting video. 
     /// The final frame rate is less than or equal to the specified value.
