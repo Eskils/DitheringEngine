@@ -112,7 +112,7 @@ extension ToolbarView {
             }
         }
         
-        func ditherVideo(name: String, progressHandler: @escaping (Float) -> Void, completionHandler: @escaping (Result<URL, Error>) -> Void) {
+        func ditherVideo(name: String, progressHandler: @escaping (Float) -> Bool, completionHandler: @escaping (Result<URL, Error>) -> Void) {
             let additionalPalleteSettings = additionalPaletteSelectionSetting
             let additionalDitherMethodSetting = additionalDitherMethodSetting
             

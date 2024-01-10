@@ -34,6 +34,15 @@ public struct VideoDescription {
         return videoTrack.nominalFrameRate
     }
     
+    /// The transform applied to the video
+    public var transform: CGAffineTransform? {
+        guard let videoTrack = asset.tracks(withMediaType: .video).first else {
+            return nil
+        }
+        
+        return videoTrack.preferredTransform
+    }
+    
     /// Returns the duration of the video.
     public var duration: TimeInterval {
         asset.duration.seconds

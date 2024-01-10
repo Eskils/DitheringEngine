@@ -223,8 +223,9 @@ struct ToolbarView: View {
         )
     }
     
-    private func didProcessVideo(withProgress progress: Float) {
+    private func didProcessVideo(withProgress progress: Float) -> Bool {
         self.exportProgress = progress
+        return true
     }
     
     private func didFinishProcessingVideo(withResult result: Result<URL, Error>) {
