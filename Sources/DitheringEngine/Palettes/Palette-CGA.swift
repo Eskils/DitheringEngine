@@ -31,7 +31,7 @@ extension Palette {
 }
 
 extension Palette.CGAMode {
-    func palette(fromPalettes palettes: Palettes) -> BytePalette {
+    func palette(fromPalettes palettes: Palettes, preferNoGray: Bool) -> BytePalette {
         switch self {
         case .palette0Low:
             return palettes.cgaColorMode4Palette0LowLut()
@@ -42,7 +42,11 @@ extension Palette.CGAMode {
         case .palette1High:
             return palettes.cgaColorMode4Palette1HighLut()
         case .textMode:
-            return palettes.cgaColorLut()
+            if preferNoGray {
+                return palettes.cgaColorLutWithoutGray()
+            } else {
+                return palettes.cgaColorLut()
+            }
         case .mode5Low:
             return palettes.cgaColorMode5LowLut()
         case .mode5High:
@@ -104,6 +108,11 @@ extension Palettes {
     public func cgaColorLut() -> BytePalette {
         let entries = cgaColors()
         return .from(lutCollection: ByteLUTCollection(entries: entries))
+    }
+    
+    public func cgaColorLutWithoutGray() -> BytePalette {
+        let entries = cgaColors()
+        return .from(lutCollection: ByteLUTCollection(entries: Array(entries[0..<7]) + Array(entries[9..<16])))
     }
     
     public func cgaColorMode4Palette1HighLut() -> BytePalette {
