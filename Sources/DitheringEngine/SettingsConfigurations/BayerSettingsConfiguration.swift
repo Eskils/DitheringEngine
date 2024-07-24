@@ -12,6 +12,9 @@ public final class BayerSettingsConfiguration: SettingsConfiguration, OrderedDit
     /// Exponent for size of threshold map m=2^n. mxm. Value between 1 and 6. Default value is 4.
     public let thresholdMapSize: CurrentValueSubject<Int, Never>
     
+    /// The intensity value to multiply the threshold map by.
+    public let intensity: CurrentValueSubject<Float?, Never>
+    
     /// Determines wether to perform the computation on the CPU. If false, the GPU is used for quicker performance.
     public let performOnCPU: CurrentValueSubject<Bool, Never>
     
@@ -20,16 +23,17 @@ public final class BayerSettingsConfiguration: SettingsConfiguration, OrderedDit
         return 2 << (exponent - 1)
     }
     
-    public init(thresholdMapSize: Int = 4, performOnCPU: Bool = false) {
+    public init(thresholdMapSize: Int = 4, intensity: Float? = nil, performOnCPU: Bool = false) {
         self.thresholdMapSize = CurrentValueSubject(thresholdMapSize)
+        self.intensity = CurrentValueSubject(intensity)
         self.performOnCPU = CurrentValueSubject(performOnCPU)
     }
     
     public func didChange() -> AnyPublisher<Any, Never> {
-        
-        return thresholdMapSize.combineLatest(performOnCPU, { thresholdMapSize, onCPU in
-            [thresholdMapSize, onCPU] as Any
-        })
+        Publishers.CombineLatest3(thresholdMapSize, intensity, performOnCPU)
+            .map { (size, intensity, onCPU) in
+                [size, intensity as Any, onCPU] as Any
+            }
             .eraseToAnyPublisher()
     }
     
@@ -38,7 +42,7 @@ public final class BayerSettingsConfiguration: SettingsConfiguration, OrderedDit
 extension BayerSettingsConfiguration: Codable {
     
     enum CodingKeys: String, CodingKey {
-        case thresholdMapSize, performOnCPU
+        case thresholdMapSize, performOnCPU, intensity
     }
     
     public func encode(to encoder: Encoder) throws {
@@ -46,6 +50,7 @@ extension BayerSettingsConfiguration: Codable {
             
         try container.encode(thresholdMapSize.value, forKey: .thresholdMapSize)
         try container.encode(performOnCPU.value, forKey: .performOnCPU)
+        try container.encode(intensity.value, forKey: .intensity)
     }
     
     public convenience init(from decoder: Decoder) throws {
@@ -53,8 +58,9 @@ extension BayerSettingsConfiguration: Codable {
         
         let thresholdMapSize = try container.decode(Int.self, forKey: .thresholdMapSize)
         let performOnCPU = try container.decode(Bool.self, forKey: .performOnCPU)
+        let intensity = try container.decodeIfPresent(Float.self, forKey: .intensity)
         
-        self.init(thresholdMapSize: thresholdMapSize, performOnCPU: performOnCPU)
+        self.init(thresholdMapSize: thresholdMapSize, intensity: intensity, performOnCPU: performOnCPU)
     }
     
 }

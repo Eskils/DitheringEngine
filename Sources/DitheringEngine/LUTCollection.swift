@@ -41,6 +41,7 @@ public struct LUTCollection<Color: ImageColor> {
         for i in 0..<count {
             let lutColor = lut[i]
             let lutColor_f = lutColor.toFloatSIMD3()
+            
             let redmean = (lutColor_f.x + color.x) / 2
             let coeffs = redmean < 128 ? SIMD3<Float>(x: 2, y: 4, z: 3) : SIMD3<Float>(x: 3, y: 4, z: 2)
             let distance = simd_distance_squared(coeffs * lutColor_f, coeffs * color)

@@ -77,9 +77,7 @@ public struct VideoDitheringEngine {
         } else {
             size = originalSize
         }
-        
-        let width = Int(originalSize.width)
-        let height = Int(originalSize.height)
+
         
         let videoAssembler: VideoAssembler
         do {
@@ -92,7 +90,7 @@ public struct VideoDitheringEngine {
         let numberOfFrames = videoDescription.numberOfFrames(overrideFramerate: frameRate) ?? 0
         let numberOfBatches = numberOfFrames / workItems
         
-        let lutPalette = palette.lut(fromPalettes: Palettes(), settings: paletteSettings)
+        let lutPalette = palette.lut(fromPalettes: Palettes(), settings: paletteSettings, preferNoGray: ditherMethod.preferNoGray)
         let byteColorCache: ByteByteColorCache?
         let floatingColorCache: FloatByteColorCache?
         if case .lutCollection(let collection) = lutPalette.type, options.contains(.precalculateDitheredColorForAllColors) {
@@ -360,7 +358,7 @@ public struct VideoDitherOptions: OptionSet {
     }
     
     /// Default video dithering.
-    public static let none = Self(rawValue: 0)
+    public static let none = Self([])
     
     /// Makes an indexed map of all colors to dithered color.
     /// Adds an increased wait time in the begining.

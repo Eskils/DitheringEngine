@@ -12,11 +12,12 @@ public enum Palette: String, CaseIterable, Codable {
     case cga
     case apple2
     case gameBoy
+    case intellivision
     case custom
 }
 
 extension Palette {
-    func lut(fromPalettes palettes: Palettes, settings: SettingsConfiguration) -> BytePalette {
+    func lut(fromPalettes palettes: Palettes, settings: SettingsConfiguration, preferNoGray: Bool) -> BytePalette {
         switch self {
         case .bw:
             return palettes.bwLut()
@@ -30,12 +31,14 @@ extension Palette {
             return palettes.quantizedColorLut(withBits: bits)
         case .cga:
             let settings = (settings as? CGASettingsConfiguration) ?? .init()
-            return settings.mode.value.palette(fromPalettes: palettes)
+            return settings.mode.value.palette(fromPalettes: palettes, preferNoGray: preferNoGray)
         case .apple2:
             let settings = (settings as? Apple2SettingsConfiguration) ?? .init()
-            return settings.mode.value.palette(fromPalettes: palettes)
+            return settings.mode.value.palette(fromPalettes: palettes, preferNoGray: preferNoGray)
         case .gameBoy:
             return palettes.gameBoy()
+        case .intellivision:
+            return palettes.intellivision()
         case .custom:
             let settings = (settings as? CustomPaletteSettingsConfiguration) ?? .init()
             return settings.palette.value
@@ -56,13 +59,15 @@ extension Palette {
             return Apple2SettingsConfiguration()
         case .gameBoy:
             return EmptyPaletteSettingsConfiguration()
+        case .intellivision:
+            return EmptyPaletteSettingsConfiguration()
         case .custom:
             return CustomPaletteSettingsConfiguration()
         }
     }
     
     public func colors(settings: SettingsConfiguration) -> [SIMD3<UInt8>] {
-        let palette = lut(fromPalettes: Palettes(), settings: settings)
+        let palette = lut(fromPalettes: Palettes(), settings: settings, preferNoGray: false)
         return palette.colors()
     }
 }
@@ -86,6 +91,8 @@ extension Palette: Nameable {
             return "Apple ]["
         case .gameBoy:
             return "Game Boy"
+        case .intellivision:
+            return "Intellivision"
         case .custom:
             return "Custom"
         }

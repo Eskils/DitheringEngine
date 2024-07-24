@@ -1,67 +1,67 @@
 {
   "images" : [
     {
-      "filename" : "DitherableIconNewBackground.png",
+      "filename" : "DEIcon64Opaque.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
     },
     {
-      "filename" : "DitherableIconNew-kopi 9.png",
+      "filename" : "DEIcon64Transparent-kopi 9.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "16x16"
     },
     {
-      "filename" : "DitherableIconNew-kopi 8.png",
+      "filename" : "DEIcon64Transparent-kopi 8.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "16x16"
     },
     {
-      "filename" : "DitherableIconNew-kopi 7.png",
+      "filename" : "DEIcon64Transparent-kopi 7.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "32x32"
     },
     {
-      "filename" : "DitherableIconNew-kopi 6.png",
+      "filename" : "DEIcon64Transparent-kopi 6.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "32x32"
     },
     {
-      "filename" : "DitherableIconNew-kopi 5.png",
+      "filename" : "DEIcon64Transparent-kopi 5.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "128x128"
     },
     {
-      "filename" : "DitherableIconNew-kopi 4.png",
+      "filename" : "DEIcon64Transparent-kopi 3.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "128x128"
     },
     {
-      "filename" : "DitherableIconNew-kopi 3.png",
+      "filename" : "DEIcon64Transparent-kopi 4.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "256x256"
     },
     {
-      "filename" : "DitherableIconNew-kopi 2.png",
+      "filename" : "DEIcon64Transparent-kopi 2.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "256x256"
     },
     {
-      "filename" : "DitherableIconNew-kopi 1.png",
+      "filename" : "DEIcon64Transparent-kopi 1.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "512x512"
     },
     {
-      "filename" : "DitherableIconNew-kopi.png",
+      "filename" : "DEIcon64Transparent-kopi.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "512x512"
