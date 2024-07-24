@@ -113,6 +113,63 @@ struct NumberSettingView<Number: RepresentableAsFloatingPoint>: View {
     
 }
 
+struct OptionalSettingViewDescription<V, ViewDescription: SettingView>: SettingView, ViewConstructable, Identifiable where ViewDescription.T == V, ViewDescription: ViewConstructable {
+    typealias T = Optional<V>
+    
+    let id = UUID().uuidString
+    
+    let subject: CurrentValueSubject<T, Never>
+    let isEnabled: CurrentValueSubject<Bool, Never> = CurrentValueSubject(false)
+    let title: String
+    let viewDescription: ViewDescription
+    
+    func makeView() -> AnyView {
+        AnyView(OptionalSettingView(description: self))
+    }
+}
+
+struct OptionalSettingView<V, ViewDescription: SettingView>: View where ViewDescription.T == V, ViewDescription: ViewConstructable {
+    
+    let description: OptionalSettingViewDescription<V, ViewDescription>
+    
+    @State
+    var state: Optional<V>
+    
+    @State
+    var isEnabled: Bool
+    
+    init(description: OptionalSettingViewDescription<V, ViewDescription>) {
+        self.description = description
+        self._state = State(wrappedValue: description.subject.value)
+        self._isEnabled = State(wrappedValue: description.subject.value != nil)
+    }
+    
+    var body: some View {
+        let bindedValue = binding(_isEnabled) { val in
+            self.description.isEnabled.send(val)
+        }
+        
+        VStack {
+            VStack {
+                Toggle(isOn: bindedValue, label: {
+                    Text(description.title)
+                })
+                if isEnabled {
+                    description.viewDescription.makeView()
+                }
+            }
+        }
+        .onReceive(Publishers.CombineLatest(description.isEnabled, description.viewDescription.subject), perform: { (isEnabled, subject) in
+            if isEnabled {
+                self.description.subject.send(subject)
+            } else {
+                self.description.subject.send(nil)
+            }
+        })
+    }
+    
+}
+
 struct EnumSettingViewDescription<Enum: Nameable>: SettingView, ViewConstructable, Identifiable {
     let id = UUID().uuidString
     
