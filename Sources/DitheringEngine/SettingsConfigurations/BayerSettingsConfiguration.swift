@@ -32,7 +32,7 @@ public final class BayerSettingsConfiguration: SettingsConfiguration, OrderedDit
     public func didChange() -> AnyPublisher<Any, Never> {
         Publishers.CombineLatest3(thresholdMapSize, intensity, performOnCPU)
             .map { (size, intensity, onCPU) in
-                [size, intensity, onCPU] as Any
+                [size, intensity as Any, onCPU] as Any
             }
             .eraseToAnyPublisher()
     }
