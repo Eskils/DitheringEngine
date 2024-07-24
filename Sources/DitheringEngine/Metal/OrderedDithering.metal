@@ -48,7 +48,7 @@ float4 pickColorFromLUTCollection(float4 baseColor, device const uint8_t *palett
     for (int i = 0; i < paletteCount; i++) {
         float3 lutColor = float3((float)palette[4 * i + 0], (float)palette[4 * i + 1], (float)palette[4 * i + 2]);
         float redmean = (lutColor.x + color.x) / 2;
-        float3 coeficients = (redmean < 0.5) ? float3(2, 4, 3) : float3(3, 4, 2);
+        float3 coeficients = (redmean < 128) ? float3(2, 4, 3) : float3(3, 4, 2);
         
         float3 convertedLutColor = coeficients * lutColor;
         float3 convertedBaseColor = coeficients * color;
