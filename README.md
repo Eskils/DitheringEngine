@@ -31,6 +31,7 @@ Check out the [demo application](./Documentation/Demo/) for iOS and macOS.
       * [CGA](#cga)
       * [Apple II](#apple-ii)
       * [Game Boy](#game-boy)
+      * [Intellivision](#intellivision)
    * [Creating your own palette](#creating-your-own-palette)
    * [Video Dithering Engine](#video-dithering-engine)
      * [Ordered dithering is more suitable](#ordered-dithering-is-more-suitable)
@@ -87,6 +88,7 @@ Supported out of the box palettes are:
   * [CGA](#cga)
   * [Apple II](#apple-ii)
   * [Game Boy](#game-boy)
+  * [Intellivision](#intellivision)
 
 ### Dithering images
 Example usage: 
@@ -237,6 +239,7 @@ Bayer dithering is a type of ordered dithering which adds a precalculated thresh
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | thresholdMapSize | Int | `4` | Specifies the size of the square threshold matrix. Default is 4x4. |
+| intensity | Float? | `nil` | Specifies the intensity of the noise pattern. When nil, the intensity is calculated from the thresholdMapSize. |
 | performOnCPU | Bool | `false` | Determines wether to perform the computation on the CPU. If false, the GPU is used for quicker performance. |
 
 Example: 
@@ -263,6 +266,7 @@ White noise dithering adds random noise to the image when converting to the sele
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | thresholdMapSize | Int | `7` | Specifies the size of the square threshold matrix. Default is 128x128. |
+| intensity | Float | `0.5` | Specifies the intensity of the noise pattern. |
 | performOnCPU | Bool | `false` | Determines wether to perform the computation on the CPU. If false, the GPU is used for quicker performance. |
 
 Example: 
@@ -291,6 +295,7 @@ You can provide your own noise texture to sample when performing ordered ditheri
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | noisePattern | CGImage? | `nil` | Specifies the noise pattern to use for ordered dithering. |
+| intensity | Float | `0.5` | Specifies the intensity of the noise pattern. |
 | performOnCPU | Bool | `false` | Determines wether to perform the computation on the CPU. If false, the GPU is used for quicker performance. |
 
 Example: 
@@ -466,6 +471,27 @@ try ditheringEngine.set(image: inputCGImage)
 let cgImage = try ditheringEngine.dither(
     usingMethod: .atkinson,
     andPalette: .gameBoy,
+    withDitherMethodSettings: EmptyPaletteSettingsConfiguration(),
+    withPaletteSettings: EmptyPaletteSettingsConfiguration()
+)
+```
+
+### Intellivision
+
+The Intellivision was a game console from the late 70’s. Its graphics was powered by the Standard Television Interface Chip, which came with a 16-color palette.
+
+![Atkinson dithering with the Game Boy palette.](Documentation/Resources/JJNIntellivision.png)
+
+**Token:** `.intellivision`  
+**Settings:** `EmptyPaletteSettingsConfiguration`
+
+Example: 
+```swift
+let ditheringEngine = DitheringEngine()
+try ditheringEngine.set(image: inputCGImage)
+let cgImage = try ditheringEngine.dither(
+    usingMethod: .atkinson,
+    andPalette: .jarvisJudiceNinke,
     withDitherMethodSettings: EmptyPaletteSettingsConfiguration(),
     withPaletteSettings: EmptyPaletteSettingsConfiguration()
 )
