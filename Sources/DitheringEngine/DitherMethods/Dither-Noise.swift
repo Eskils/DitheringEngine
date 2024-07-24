@@ -6,10 +6,10 @@
 //
 
 extension DitherMethods {
-    func noise(palette: BytePalette, noisePattern: ImageDescription, performOnCPU: Bool) {
+    func noise(palette: BytePalette, noisePattern: ImageDescription, intensity: Float, performOnCPU: Bool) {
         let thresholdMap = FloatingThresholdMap.generateImageThresholdMap(image: noisePattern)
         let normalizationOffset: Float = 128
-        let thresholdMultiplier: Float = 1
+        let thresholdMultiplier: Float = intensity
         
         ordered(
             palette: palette,
