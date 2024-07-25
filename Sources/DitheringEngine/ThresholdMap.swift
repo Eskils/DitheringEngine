@@ -89,7 +89,7 @@ extension ThresholdMap {
                 
                 let i = y * num + x
                 
-                buffer[i] = Float(4 * term + offset + 1)
+                buffer[i] = Float(4 * term + offset)
             }
         }
         

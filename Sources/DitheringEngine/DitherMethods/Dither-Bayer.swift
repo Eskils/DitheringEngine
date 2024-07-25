@@ -11,7 +11,7 @@ extension DitherMethods {
         let thresholdMap = FloatingThresholdMap.generateBayerThresholdMap(n: thresholdMapSize)
         let normalizationOffset = Float(thresholdMap.count) / 2
         let intensityFromSize = 8 / Float(thresholdMapSize)
-        let thresholdMultiplier = intensity ?? intensityFromSize
+        let thresholdMultiplier = intensityFromSize * (intensity ?? 1)
         
         ordered(
             palette: palette,
