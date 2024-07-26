@@ -38,7 +38,7 @@ extension Palette {
         case .gameBoy:
             return palettes.gameBoy()
         case .intellivision:
-            return palettes.intellivision()
+            return palettes.intellivision(preferNoGray: preferNoGray)
         case .custom:
             let settings = (settings as? CustomPaletteSettingsConfiguration) ?? .init()
             return settings.palette.value

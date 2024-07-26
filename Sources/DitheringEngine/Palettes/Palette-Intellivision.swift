@@ -8,11 +8,12 @@
 import Foundation
 
 extension Palettes {
-    public func intellivision() -> BytePalette {
+    public func intellivision(preferNoGray: Bool) -> BytePalette {
         .from(lutCollection: ByteLUTCollection(entries: [
             .from32Bits(0x000000),
             .from32Bits(0xFFFCFF),
             .from32Bits(0x002DFF),
+            .from32Bits(preferNoGray ? 0x000000 : 0xBDACC8),
             
             .from32Bits(0xFF3E00),
             .from32Bits(0xC9D464),
