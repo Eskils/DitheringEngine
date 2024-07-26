@@ -13,7 +13,7 @@ public final class BayerSettingsConfiguration: SettingsConfiguration, OrderedDit
     public let thresholdMapSize: CurrentValueSubject<Int, Never>
     
     /// The intensity value to multiply the threshold map by.
-    public let intensity: CurrentValueSubject<Float?, Never>
+    public let intensity: CurrentValueSubject<Float, Never>
     
     /// Determines wether to perform the computation on the CPU. If false, the GPU is used for quicker performance.
     public let performOnCPU: CurrentValueSubject<Bool, Never>
@@ -23,7 +23,7 @@ public final class BayerSettingsConfiguration: SettingsConfiguration, OrderedDit
         return 2 << (exponent - 1)
     }
     
-    public init(thresholdMapSize: Int = 4, intensity: Float? = nil, performOnCPU: Bool = false) {
+    public init(thresholdMapSize: Int = 4, intensity: Float = 1, performOnCPU: Bool = false) {
         self.thresholdMapSize = CurrentValueSubject(thresholdMapSize)
         self.intensity = CurrentValueSubject(intensity)
         self.performOnCPU = CurrentValueSubject(performOnCPU)
@@ -58,7 +58,7 @@ extension BayerSettingsConfiguration: Codable {
         
         let thresholdMapSize = try container.decode(Int.self, forKey: .thresholdMapSize)
         let performOnCPU = try container.decode(Bool.self, forKey: .performOnCPU)
-        let intensity = try container.decodeIfPresent(Float.self, forKey: .intensity)
+        let intensity = try container.decode(Float.self, forKey: .intensity)
         
         self.init(thresholdMapSize: thresholdMapSize, intensity: intensity, performOnCPU: performOnCPU)
     }
