@@ -153,14 +153,9 @@ class CustomPaletteSettingsConfigurationWithView: PaletteSettingsConfigurationWi
         case is BayerSettingsConfiguration:
             let settingsConfiguration = paletteSettingsConfiguration as! BayerSettingsConfiguration
             
-            let intensitySubject: CurrentValueSubject<Float, Never> = CurrentValueSubject(0.5)
-            
             let views: [any SettingView] = [
                 NumberSettingViewDescription(subject: settingsConfiguration.thresholdMapSize, title: "Threshold Map Size", min: 0, max: 8),
-                OptionalSettingViewDescription(
-                    subject: settingsConfiguration.intensity,
-                    title: "Use intensity",
-                    viewDescription: NumberSettingViewDescription(subject: intensitySubject, title: "Intensity", min: 0, max: 1)),
+                NumberSettingViewDescription(subject: settingsConfiguration.intensity, title: "Intensity", min: 0, max: 1),
                 BooleanSettingViewDescription(isOn: settingsConfiguration.performOnCPU, title: "Perform on CPU"),
             ]
             
