@@ -52,7 +52,7 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/Eskils/DitheringEngine", 
-      .upToNextMinor(from: "1.8.0") // or `.upToNextMajor
+      .upToNextMinor(from: "1.8.1") // or `.upToNextMajor
     )
   ],
   targets: [
@@ -239,7 +239,7 @@ Bayer dithering is a type of ordered dithering which adds a precalculated thresh
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | thresholdMapSize | Int | `4` | Specifies the size of the square threshold matrix. Default is 4x4. |
-| intensity | Float? | `nil` | Specifies the intensity of the noise pattern. When nil, the intensity is calculated from the thresholdMapSize. |
+| intensity | Float | `1` | Specifies the intensity of the noise pattern. Intensity is calculated from the thresholdMapSize, and this property specifies the fraction of the calculated intensity to apply. |
 | performOnCPU | Bool | `false` | Determines wether to perform the computation on the CPU. If false, the GPU is used for quicker performance. |
 
 Example: 
