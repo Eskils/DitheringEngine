@@ -76,7 +76,8 @@ float4 pickColor(PaletteType paletteType, float4 baseColor, device const uint8_t
 }
 
 kernel void orderedDithering(
-    texture2d<float, access::read_write> texture [[texture(0)]],
+    texture2d<float, access::read> inTexture [[texture(0)]],
+    texture2d<float, access::write> outTexture [[texture(1)]],
     device const float *thresholdMap        [[buffer(0)]],
     device const int *thresholdMapSize      [[buffer(1)]],
     device const uint8_t *palette           [[buffer(2)]],
@@ -86,7 +87,7 @@ kernel void orderedDithering(
     device const float *thresholdMultiplier [[buffer(6)]],
     uint2 gid [[thread_position_in_grid]]
 ) {
-    float4 colorIn = texture.read(gid) * 255;
+    float4 colorIn = inTexture.read(gid) * 255;
     
     int thresholdMapNum = *thresholdMapSize;
     int thresholdMapIndex = (gid.y % thresholdMapNum) * thresholdMapNum + gid.x % thresholdMapNum;
@@ -98,6 +99,6 @@ kernel void orderedDithering(
     float4 pickedColor = pickColor(*paletteType, clampedNewColor, palette, *paletteCount) / 255;
     float4 resultColor = float4(pickedColor.xyz, 1);
     
-    texture.write(resultColor, gid);
+    outTexture.write(resultColor, gid);
 }
 

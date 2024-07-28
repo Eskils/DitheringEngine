@@ -32,18 +32,18 @@ struct MetalFunction {
         return MetalFunction(commandQueue: commandQueue, pipelineState: pipelineState, maxThreads: maxThreads)
     }
     
-    static func makeTexture(width: Int, height: Int, device: MTLDevice) -> MTLTexture? {
+    static func makeTexture(width: Int, height: Int, usage: MTLTextureUsage,  device: MTLDevice) -> MTLTexture? {
         let descriptor = MTLTextureDescriptor()
         descriptor.width = width
         descriptor.height = height
         descriptor.textureType = .type2D
         descriptor.pixelFormat = .rgba8Unorm
         descriptor.storageMode = .shared
-        descriptor.usage = [.shaderRead, .shaderWrite]
+        descriptor.usage = usage
         return device.makeTexture(descriptor: descriptor)
     }
     
-    func perform(numWidth: Int, numHeight: Int, texture: MTLTexture, commandEncoderConfiguration: @escaping (MTLComputeCommandEncoder) -> Void) throws {
+    func perform(numWidth: Int, numHeight: Int, commandEncoderConfiguration: @escaping (MTLComputeCommandEncoder) -> Void) throws {
         guard let commandBuffer = commandQueue.makeCommandBuffer() else {
             throw PerformMetalError.cannotMakeCommandBuffer
         }
@@ -124,7 +124,10 @@ class MetalOrderedDithering {
         let width = imageDescription.width
         let height = imageDescription.height
         
-        guard let texture = MetalFunction.makeTexture(width: width, height: height, device: device) else {
+        guard 
+            let inTexture = MetalFunction.makeTexture(width: width, height: height, usage: .shaderRead, device: device),
+            let outTexture = MetalFunction.makeTexture(width: width, height: height, usage: .shaderWrite, device: device)
+        else {
             throw MetalOrderedDitheringError.cannotMakeTexture
         }
         
@@ -133,7 +136,7 @@ class MetalOrderedDithering {
             size: MTLSize(width: width, height: height, depth: 1)
         )
         
-        texture.replace(
+        inTexture.replace(
             region: fullImageRegion,
             mipmapLevel: 0,
             withBytes: imageDescription.buffer,
@@ -149,10 +152,10 @@ class MetalOrderedDithering {
         
         try orderedDitheringFunction.perform(
             numWidth: width,
-            numHeight: height,
-            texture: texture
+            numHeight: height
         ) { commandEncoder in
-            commandEncoder.setTexture(texture, index: 0)
+            commandEncoder.setTexture(inTexture, index: 0)
+            commandEncoder.setTexture(outTexture, index: 1)
             
             let thresholdMapBuffer = device.makeBuffer(bytes: thresholdMap.buffer, length: thresholdMap.count * MemoryLayout<Float>.size, options: .storageModeShared)
             commandEncoder.setBuffer(thresholdMapBuffer, offset: 0, index: 0)
@@ -182,7 +185,7 @@ class MetalOrderedDithering {
         }
         
         let buffer = resultImageDescription.buffer
-        texture.getBytes(
+        outTexture.getBytes(
             buffer,
             bytesPerRow: resultImageDescription.bytesPerRow,
             from: fullImageRegion,
