@@ -40,12 +40,10 @@ class VideoAssembler {
             AVVideoHeightKey: height
         ] as [String : Any]
         
-        let audioSettings = [
-            AVFormatIDKey: kAudioFormatMPEG4AAC,
-            AVSampleRateKey: sampleRate,
-            AVNumberOfChannelsKey: 2,
-            AVEncoderBitRateKey: 160_000
-        ] as [String : Any]
+        let assistant = AVOutputSettingsAssistant(preset: .preset1920x1080)
+        guard let audioSettings = assistant?.audioSettings else {
+            throw VideoAssemblerError.cannotMakeAudioSettingsForPreset
+        }
         
         self.videoInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
         if let transform {
@@ -128,6 +126,7 @@ class VideoAssembler {
     enum VideoAssemblerError: Error {
         case cannotAddVideoAssetWriterInput
         case cannotAddAudioAssetWriterInput
+        case cannotMakeAudioSettingsForPreset
     }
     
 }
