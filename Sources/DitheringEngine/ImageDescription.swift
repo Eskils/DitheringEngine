@@ -123,6 +123,21 @@ extension GenericImageDescription {
                      buffer[index + 2])
     }
     
+    func getColorWithAlphaAt(index i: Int) -> SIMD4<Color> {
+        let hasAlpha = components == 4
+        
+        if i < 0 || components * i + 3 > count {
+            return .zero
+        }
+        
+        let index = components * i
+        
+        return SIMD4(buffer[index + 0],
+                     buffer[index + 1],
+                     buffer[index + 2],
+                     hasAlpha ? buffer[index + 3] : 1)
+    }
+    
     func setColorAt(index i: Int, color: SIMD3<Color>) {
         if components * i + 2 > count {
             return
