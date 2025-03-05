@@ -161,6 +161,30 @@ extension GenericImageDescription {
         buffer[index + 2] = color.z
     }
     
+    func setColorWithAlphaAt(index i: Int, color: SIMD4<Color>) {
+        if components * i + 3 > count {
+            return
+        }
+        
+        let index = components * i
+        
+        buffer[index + 0] = color.x
+        buffer[index + 1] = color.y
+        buffer[index + 2] = color.z
+        buffer[index + 3] = color.w
+    }
+    
+    func setColor(component: Component, at i: Int, color: Color) {
+        let componentOffset = component.offset
+        
+        if i < 0 || components * i + componentOffset > count {
+            return .zero
+        }
+        
+        let index = components * i
+        buffer[index + componentOffset] = color
+    }
+    
     private func handlePixelOrderingTransform(forColor color: SIMD3<Color>) -> SIMD3<Color> {
         switch pixelOrdering {
         case .rgba:
