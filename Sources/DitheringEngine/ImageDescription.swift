@@ -138,6 +138,17 @@ extension GenericImageDescription {
                      hasAlpha ? buffer[index + 3] : 1)
     }
     
+    func getColor(component: Component, at i: Int) -> Color {
+        let componentOffset = component.offset
+        
+        if i < 0 || components * i + componentOffset > count {
+            return .zero
+        }
+        
+        let index = components * i
+        return buffer[index + componentOffset]
+    }
+    
     func setColorAt(index i: Int, color: SIMD3<Color>) {
         if components * i + 2 > count {
             return
@@ -387,4 +398,34 @@ extension GenericImageDescription where Color == Float {
         }
     }
     
+}
+
+extension GenericImageDescription {
+    
+    enum Component {
+        /// The red channel of the image
+        case red
+        /// The green channel of the image
+        case green
+        /// The blue channel of the image
+        case blue
+        /// The alpha channel of the image
+        case alpha
+    }
+    
+}
+
+extension GenericImageDescription.Component {
+    var offset: Int {
+        switch self {
+        case .red:
+            0
+        case .green:
+            1
+        case .blue:
+            2
+        case .alpha:
+            3
+        }
+    }
 }
