@@ -135,10 +135,10 @@ extension GenericImageDescription {
         return SIMD4(buffer[index + 0],
                      buffer[index + 1],
                      buffer[index + 2],
-                     hasAlpha ? buffer[index + 3] : 1)
+                     hasAlpha ? buffer[index + 3] : .one)
     }
     
-    func getColor(component: Component, at i: Int) -> Color {
+    func getColor(component: ColorComponent, at i: Int) -> Color {
         let componentOffset = component.offset
         
         if i < 0 || components * i + componentOffset > count {
@@ -174,11 +174,11 @@ extension GenericImageDescription {
         buffer[index + 3] = color.w
     }
     
-    func setColor(component: Component, at i: Int, color: Color) {
+    func setColor(component: ColorComponent, at i: Int, color: Color) {
         let componentOffset = component.offset
         
         if i < 0 || components * i + componentOffset > count {
-            return .zero
+            return
         }
         
         let index = components * i
@@ -426,7 +426,7 @@ extension GenericImageDescription where Color == Float {
 
 extension GenericImageDescription {
     
-    enum Component {
+    enum ColorComponent {
         /// The red channel of the image
         case red
         /// The green channel of the image
@@ -439,7 +439,7 @@ extension GenericImageDescription {
     
 }
 
-extension GenericImageDescription.Component {
+extension GenericImageDescription.ColorComponent {
     var offset: Int {
         switch self {
         case .red:
