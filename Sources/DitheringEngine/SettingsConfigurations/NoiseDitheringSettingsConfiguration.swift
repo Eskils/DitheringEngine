@@ -7,7 +7,9 @@
 
 import Combine
 import CoreGraphics
+#if canImport(UIKit)
 import UIKit
+#endif
 
 public final class NoiseDitheringSettingsConfiguration: SettingsConfiguration {
     
@@ -36,6 +38,7 @@ public final class NoiseDitheringSettingsConfiguration: SettingsConfiguration {
     
 }
 
+#if canImport(UIKit)
 extension NoiseDitheringSettingsConfiguration: Codable {
     
     enum CodingKeys: String, CodingKey {
@@ -65,3 +68,4 @@ extension NoiseDitheringSettingsConfiguration: Codable {
     }
     
 }
+#endif
