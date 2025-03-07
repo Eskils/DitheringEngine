@@ -6,7 +6,7 @@ final class DitheringEngineTests: XCTestCase {
     let ditheringEngine = DitheringEngine()
     let testsDirectory = URL(fileURLWithPath: #filePath + "/..").standardizedFileURL.path
     
-    func testDitheringImageWithAlpha() throws {
+    func testDitheringImageWithSemitransparentAlpha() throws {
         XCTAssertTrue(
             try isEqual(
                 image: "transparent-monochrome-gradient",
@@ -16,6 +16,24 @@ final class DitheringEngineTests: XCTestCase {
                     return try ditheringEngine.dither(
                         usingMethod: .bayer,
                         andPalette: .apple2,
+                        withDitherMethodSettings: EmptyPaletteSettingsConfiguration(),
+                        withPaletteSettings: EmptyPaletteSettingsConfiguration()
+                    )
+                }
+            )
+        )
+    }
+    
+    func testDitheringImageWithAlpha() throws {
+        XCTAssertTrue(
+            try isEqual(
+                image: "transparent-gradient-star",
+                expectedImage: "transparent-gradient-start+cga-fs",
+                transform: { input in
+                    try ditheringEngine.set(image: input)
+                    return try ditheringEngine.dither(
+                        usingMethod: .floydSteinberg,
+                        andPalette: .cga,
                         withDitherMethodSettings: EmptyPaletteSettingsConfiguration(),
                         withPaletteSettings: EmptyPaletteSettingsConfiguration()
                     )
