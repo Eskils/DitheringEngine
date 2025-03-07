@@ -194,6 +194,15 @@ extension GenericImageDescription {
         }
     }
     
+    func update<ImageDescription: GenericImageDescription>(component: ColorComponent, from imageDescription: ImageDescription) {
+        for y in 0..<height {
+            for x in 0..<width {
+                let i = components * (y * width + x)
+                self.buffer[i + component.offset] = imageDescription.buffer[i + component.offset]
+            }
+        }
+    }
+    
 }
 
 extension GenericImageDescription where Color == UInt8 {
