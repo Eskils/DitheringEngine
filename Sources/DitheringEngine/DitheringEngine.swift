@@ -16,6 +16,7 @@ public class DitheringEngine {
     
     public let palettes = Palettes()
     
+    /// Whether to copy the alpha channel from the original image to the dithered image. Default is `true`
     public var preserveTransparency: Bool = true
     
     private let seed = Int(arc4random())
