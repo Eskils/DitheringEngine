@@ -16,6 +16,8 @@ public class DitheringEngine {
     
     public let palettes = Palettes()
     
+    public var preserveTransparency: Bool = true
+    
     private let seed = Int(arc4random())
     
     public init() {}
@@ -124,16 +126,24 @@ public class DitheringEngine {
     }
     
     public func generateResultImage() throws -> CGImage {
-        guard let resultImageDescription else {
+        guard let resultImageDescription, let imageDescription else {
             throw Error.noImageDescription
+        }
+        
+        if preserveTransparency && imageDescription.components == 4 {
+            resultImageDescription.update(component: .alpha, from: imageDescription)
         }
         
         return try resultImageDescription.makeCGImage()
     }
     
     func generateResultPixelBuffer() throws -> CVPixelBuffer {
-        guard let resultImageDescription else {
+        guard let resultImageDescription, let imageDescription else {
             throw Error.noImageDescription
+        }
+        
+        if preserveTransparency && imageDescription.components == 4 {
+            resultImageDescription.update(component: .alpha, from: imageDescription)
         }
         
         return try resultImageDescription.makePixelBuffer()
