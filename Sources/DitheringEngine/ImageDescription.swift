@@ -8,6 +8,7 @@
 import CoreVideo.CVPixelBuffer
 import CoreGraphics
 import simd
+import Accelerate
 
 enum PixelOrdering {
     case bgra
@@ -194,15 +195,6 @@ extension GenericImageDescription {
         }
     }
     
-    func update<ImageDescription: GenericImageDescription>(component: ColorComponent, from imageDescription: ImageDescription) {
-        for y in 0..<height {
-            for x in 0..<width {
-                let i = components * (y * width + x)
-                self.buffer[i + component.offset] = imageDescription.buffer[i + component.offset]
-            }
-        }
-    }
-    
 }
 
 extension GenericImageDescription where Color == UInt8 {
@@ -267,6 +259,28 @@ extension GenericImageDescription where Color == UInt8 {
         CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly)
         
         return true
+    }
+    
+    func update<ImageDescription: GenericImageDescription>(component: ColorComponent, from imageDescription: ImageDescription) {
+        var sourceBuffer = vImage_Buffer(
+            data: UnsafeMutableRawPointer(imageDescription.buffer),
+            height: vImagePixelCount(imageDescription.height),
+            width: vImagePixelCount(imageDescription.width),
+            rowBytes: imageDescription.bytesPerRow
+        )
+        var targetBuffer = vImage_Buffer(
+            data: UnsafeMutableRawPointer(self.buffer),
+            height: vImagePixelCount(self.height),
+            width: vImagePixelCount(self.width),
+            rowBytes: self.bytesPerRow
+        )
+        vImageSelectChannels_ARGB8888(
+            &sourceBuffer,
+            &targetBuffer,
+            &targetBuffer,
+            component.copyMask,
+            vImage_Flags(kvImageDoNotTile)
+        )
     }
     
     /// Converts to FloatingImageDescription
@@ -459,6 +473,19 @@ extension GenericImageDescription.ColorComponent {
             2
         case .alpha:
             3
+        }
+    }
+    
+    var copyMask: UInt8 {
+        switch self {
+        case .red:
+            0x8
+        case .green:
+            0x4
+        case .blue:
+            0x2
+        case .alpha:
+            0x1
         }
     }
 }
