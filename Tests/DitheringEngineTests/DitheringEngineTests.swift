@@ -42,6 +42,42 @@ final class DitheringEngineTests: XCTestCase {
         )
     }
     
+    func testDitheringImageWithoutAlphaPerformance() throws {
+        let ditheringEngine = DitheringEngine()
+        ditheringEngine.preserveTransparency = false
+        let inputImageName = "transparent-gradient-star"
+        let inputImagePath = testsDirectory + "/InputImages/\(inputImageName).png"
+        let inputImage = try image(atPath: inputImagePath)
+        try ditheringEngine.set(image: inputImage)
+        
+        measure {
+            _ = try! ditheringEngine.dither(
+                usingMethod: .bayer,
+                andPalette: .bw,
+                withDitherMethodSettings: EmptyPaletteSettingsConfiguration(),
+                withPaletteSettings: EmptyPaletteSettingsConfiguration()
+            )
+        }
+    }
+    
+    func testDitheringImageAlphaPerformance() throws {
+        let ditheringEngine = DitheringEngine()
+        ditheringEngine.preserveTransparency = true
+        let inputImageName = "transparent-gradient-star"
+        let inputImagePath = testsDirectory + "/InputImages/\(inputImageName).png"
+        let inputImage = try image(atPath: inputImagePath)
+        try ditheringEngine.set(image: inputImage)
+        
+        measure {
+            _ = try! ditheringEngine.dither(
+                usingMethod: .bayer,
+                andPalette: .bw,
+                withDitherMethodSettings: EmptyPaletteSettingsConfiguration(),
+                withPaletteSettings: EmptyPaletteSettingsConfiguration()
+            )
+        }
+    }
+    
 }
 
 private extension DitheringEngineTests {
