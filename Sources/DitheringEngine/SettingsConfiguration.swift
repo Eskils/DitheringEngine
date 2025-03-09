@@ -8,14 +8,15 @@
 import Foundation
 import Combine
 
-public protocol SettingsConfiguration: AnyObject {
+#if canImport(UIKit)
+public protocol SettingsConfiguration: AnyObject, Codable {
     func didChange() -> AnyPublisher<Any, Never>
     var className: String { get }
 }
-
-#if canImport(UIKit)
-extension SettingsConfiguration: Codable {
-    
+#else
+public protocol SettingsConfiguration: AnyObject {
+    func didChange() -> AnyPublisher<Any, Never>
+    var className: String { get }
 }
 #endif
 
