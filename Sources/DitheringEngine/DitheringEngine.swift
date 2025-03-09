@@ -17,9 +17,19 @@ public class DitheringEngine {
     public let palettes = Palettes()
     
     /// Whether to copy the alpha channel from the original image to the dithered image. Default is `true`
-    public var preserveTransparency: Bool = true
+    public var preserveTransparency: Bool = true {
+        didSet {
+            if !preserveTransparency {
+                // The alpha channel of the resultImage needs to be reset
+                // when this changes to false
+                invalidateResultImageDescription = true
+            }
+        }
+    }
     
     private let seed = Int(arc4random())
+    
+    private var invalidateResultImageDescription = false
     
     public init() {}
     
@@ -137,6 +147,11 @@ public class DitheringEngine {
         
         if preserveTransparency && imageDescription.components == 4 {
             resultImageDescription.update(component: .alpha, from: imageDescription)
+        } else if invalidateResultImageDescription {
+            if !preserveTransparency && imageDescription.components == 4 {
+                resultImageDescription.set(component: .alpha, to: 255)
+            }
+            invalidateResultImageDescription = false
         }
         
         return try resultImageDescription.makeCGImage()
@@ -149,6 +164,11 @@ public class DitheringEngine {
         
         if preserveTransparency && imageDescription.components == 4 {
             resultImageDescription.update(component: .alpha, from: imageDescription)
+        } else if invalidateResultImageDescription {
+            if !preserveTransparency && imageDescription.components == 4 {
+                resultImageDescription.set(component: .alpha, to: 255)
+            }
+            invalidateResultImageDescription = false
         }
         
         return try resultImageDescription.makePixelBuffer()
