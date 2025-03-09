@@ -283,6 +283,22 @@ extension GenericImageDescription where Color == UInt8 {
         )
     }
     
+    func set(component: ColorComponent, to color: Color) {
+        var targetBuffer = vImage_Buffer(
+            data: UnsafeMutableRawPointer(self.buffer),
+            height: vImagePixelCount(self.height),
+            width: vImagePixelCount(self.width),
+            rowBytes: self.bytesPerRow
+        )
+        vImageOverwriteChannelsWithScalar_ARGB8888(
+            color,
+            &targetBuffer,
+            &targetBuffer,
+            component.copyMask,
+            vImage_Flags(kvImageNoFlags)
+        )
+    }
+    
     /// Converts to FloatingImageDescription
     func toFloatingImageDescription() -> FloatingImageDescription {
         let imageDescription = FloatingImageDescription(width: width, height: height, components: components, pixelOrdering: pixelOrdering)
