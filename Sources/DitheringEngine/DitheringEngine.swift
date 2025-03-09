@@ -77,6 +77,10 @@ public class DitheringEngine {
             let newResultImageDescription = ImageDescription(width: image.width, height: image.height, components: 4)
             newResultImageDescription.buffer.update(repeating: 255, count: newResultImageDescription.count)
             self.resultImageDescription = newResultImageDescription
+        } else {
+            if !preserveTransparency, let resultImageDescription {
+                resultImageDescription.buffer.update(repeating: 255, count: resultImageDescription.count)
+            }
         }
     }
     
