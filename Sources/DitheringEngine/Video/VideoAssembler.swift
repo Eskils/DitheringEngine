@@ -27,6 +27,10 @@ class VideoAssembler {
     
     private var framecount: Int = 0
     
+    #if canImport(UIKit)
+    let context = CIContext()
+    #endif
+    
     init(outputURL: URL, width: Int, height: Int, framerate: Int, sampleRate: Int, transform: CGAffineTransform? = nil, emitFrames: Bool = false) throws {
         self.width = width
         self.height = height
@@ -102,10 +106,6 @@ class VideoAssembler {
         while !audioInput.isReadyForMoreMediaData {}
         audioInput.append(sample)
     }
-    
-    #if canImport(UIKit)
-    let context = CIContext()
-    #endif
     
     private func storeImageFrame(pixelBuffer: CVPixelBuffer) {
         #if canImport(UIKit)
