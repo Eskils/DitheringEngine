@@ -95,6 +95,18 @@ struct ToolbarView: View {
             Divider()
             
             VStack {
+                Text("Image options")
+                    .bold()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Toggle(isOn: $viewModel.preserveTransparency) {
+                    Text("Preserve transparency")
+                }
+            }
+            
+            Divider()
+            
+            VStack {
                 Button { didPressExport() } label: {
                     Label(title: { Text(viewModel.isInVideoMode ? "Export dithered video" : "Export dithered image") },
                           icon: SF.square.and.arrow.up.swiftUIImage)

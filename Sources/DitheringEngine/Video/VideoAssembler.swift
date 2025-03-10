@@ -6,7 +6,9 @@
 //
 
 import AVFoundation
+#if canImport(UIKit)
 import UIKit
+#endif
 
 class VideoAssembler {
     
@@ -101,15 +103,19 @@ class VideoAssembler {
         audioInput.append(sample)
     }
     
+    #if canImport(UIKit)
     let context = CIContext()
+    #endif
     
     private func storeImageFrame(pixelBuffer: CVPixelBuffer) {
+        #if canImport(UIKit)
         let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
         if let cgImage = context.createCGImage(ciImage, from: ciImage.extent),
            let data = UIImage(cgImage: cgImage).pngData() {
             let url = framesURL.appendingPathComponent("DitheredVideoFrame_\(framecount).png")
             try? data.write(to: url)
         }
+        #endif
     }
     
     func generateVideo() async {

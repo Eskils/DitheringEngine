@@ -8,6 +8,7 @@
 import CoreVideo.CVPixelBuffer
 import CoreGraphics
 import simd
+import Accelerate
 
 enum PixelOrdering {
     case bgra
@@ -123,6 +124,32 @@ extension GenericImageDescription {
                      buffer[index + 2])
     }
     
+    func getColorWithAlphaAt(index i: Int) -> SIMD4<Color> {
+        let hasAlpha = components == 4
+        
+        if i < 0 || components * i + 3 > count {
+            return .zero
+        }
+        
+        let index = components * i
+        
+        return SIMD4(buffer[index + 0],
+                     buffer[index + 1],
+                     buffer[index + 2],
+                     hasAlpha ? buffer[index + 3] : .one)
+    }
+    
+    func getColor(component: ColorComponent, at i: Int) -> Color {
+        let componentOffset = component.offset
+        
+        if i < 0 || components * i + componentOffset > count {
+            return .zero
+        }
+        
+        let index = components * i
+        return buffer[index + componentOffset]
+    }
+    
     func setColorAt(index i: Int, color: SIMD3<Color>) {
         if components * i + 2 > count {
             return
@@ -133,6 +160,30 @@ extension GenericImageDescription {
         buffer[index + 0] = color.x
         buffer[index + 1] = color.y
         buffer[index + 2] = color.z
+    }
+    
+    func setColorWithAlphaAt(index i: Int, color: SIMD4<Color>) {
+        if components * i + 3 > count {
+            return
+        }
+        
+        let index = components * i
+        
+        buffer[index + 0] = color.x
+        buffer[index + 1] = color.y
+        buffer[index + 2] = color.z
+        buffer[index + 3] = color.w
+    }
+    
+    func setColor(component: ColorComponent, at i: Int, color: Color) {
+        let componentOffset = component.offset
+        
+        if i < 0 || components * i + componentOffset > count {
+            return
+        }
+        
+        let index = components * i
+        buffer[index + componentOffset] = color
     }
     
     private func handlePixelOrderingTransform(forColor color: SIMD3<Color>) -> SIMD3<Color> {
@@ -208,6 +259,44 @@ extension GenericImageDescription where Color == UInt8 {
         CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly)
         
         return true
+    }
+    
+    func update<ImageDescription: GenericImageDescription>(component: ColorComponent, from imageDescription: ImageDescription) {
+        var sourceBuffer = vImage_Buffer(
+            data: UnsafeMutableRawPointer(imageDescription.buffer),
+            height: vImagePixelCount(imageDescription.height),
+            width: vImagePixelCount(imageDescription.width),
+            rowBytes: imageDescription.bytesPerRow
+        )
+        var targetBuffer = vImage_Buffer(
+            data: UnsafeMutableRawPointer(self.buffer),
+            height: vImagePixelCount(self.height),
+            width: vImagePixelCount(self.width),
+            rowBytes: self.bytesPerRow
+        )
+        vImageSelectChannels_ARGB8888(
+            &sourceBuffer,
+            &targetBuffer,
+            &targetBuffer,
+            component.copyMask,
+            vImage_Flags(kvImageDoNotTile)
+        )
+    }
+    
+    func set(component: ColorComponent, to color: Color) {
+        var targetBuffer = vImage_Buffer(
+            data: UnsafeMutableRawPointer(self.buffer),
+            height: vImagePixelCount(self.height),
+            width: vImagePixelCount(self.width),
+            rowBytes: self.bytesPerRow
+        )
+        vImageOverwriteChannelsWithScalar_ARGB8888(
+            color,
+            &targetBuffer,
+            &targetBuffer,
+            component.copyMask,
+            vImage_Flags(kvImageNoFlags)
+        )
     }
     
     /// Converts to FloatingImageDescription
@@ -372,4 +461,47 @@ extension GenericImageDescription where Color == Float {
         }
     }
     
+}
+
+extension GenericImageDescription {
+    
+    enum ColorComponent {
+        /// The red channel of the image
+        case red
+        /// The green channel of the image
+        case green
+        /// The blue channel of the image
+        case blue
+        /// The alpha channel of the image
+        case alpha
+    }
+    
+}
+
+extension GenericImageDescription.ColorComponent {
+    var offset: Int {
+        switch self {
+        case .red:
+            0
+        case .green:
+            1
+        case .blue:
+            2
+        case .alpha:
+            3
+        }
+    }
+    
+    var copyMask: UInt8 {
+        switch self {
+        case .red:
+            0x8
+        case .green:
+            0x4
+        case .blue:
+            0x2
+        case .alpha:
+            0x1
+        }
+    }
 }

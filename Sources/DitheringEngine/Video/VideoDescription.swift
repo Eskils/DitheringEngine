@@ -90,7 +90,7 @@ public struct VideoDescription {
         assetImageGenerator.appliesPreferredTrackTransform = true
         let time = CMTime.zero
         
-        if #available(iOS 16, macCatalyst 16, *) {
+        if #available(iOS 16, macCatalyst 16, macOS 13, *) {
             let (image, _) = try await assetImageGenerator.image(at: time)
             return image
         } else {
