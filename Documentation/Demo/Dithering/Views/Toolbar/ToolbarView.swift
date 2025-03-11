@@ -12,7 +12,7 @@ import DitheringEngine
 struct ToolbarView: View {
     
     @State var selection: MediaFormat?
-    @State var selectedImage: UIImage? = nil
+    @State var selectedImage: PlatformImage? = nil
     @State var showImagePicker = false
     @State var showFilePicker = false
     
@@ -52,7 +52,7 @@ struct ToolbarView: View {
             
             Text("Choose an image or a video to dither")
                 .font(.body)
-                .foregroundStyle(Color(UIColor.secondaryLabel))
+                .foregroundStyle(Color.secondary)
             
             VStack(spacing: 16) {
                 Button(action: didPressChooseImage) {
@@ -125,11 +125,13 @@ struct ToolbarView: View {
         }
         .padding(8)
         .onChange(of: selection) { didChoose(media: $0) }
+        #if canImport(UIKit)
         .sheet(isPresented: $showImagePicker) { ImagePicker(selection: $selection) }
         .sheet(isPresented: $showFilePicker) { DocumentPicker(selection: $selection) }
         .sheet(item: $exportURL) { url in
             DocumentExporter(exporting: url)
         }
+        #endif
         .alert("An error occured", isPresented: $showErrorAlert, actions: {
             Button(action: {}) {
                 Text("Ok")
@@ -159,7 +161,7 @@ struct ToolbarView: View {
     }
     
     func didAppear() {
-        guard let image = UIImage(named: "Bergen") else {
+        guard let image = PlatformImage(named: "Bergen") else {
             return
         }
         
@@ -186,7 +188,7 @@ struct ToolbarView: View {
     }
     
     @MainActor
-    func didChoose(image: UIImage) {
+    func didChoose(image: PlatformImage) {
         guard let cgImage = image.cgImage else {
             return
         }
@@ -205,15 +207,20 @@ struct ToolbarView: View {
     }
     
     private func exportImage() {
+        let imageData = NSMutableData()
+        
         guard
-            let image = viewModel.appState.finalImage?.toUIImage(),
-            let imageData = image.pngData()
+            let image = viewModel.appState.finalImage,
+            let imageDestination = CGImageDestinationCreateWithData(imageData as CFMutableData, "public.png" as CFString, 1, nil)
         else {
             return
         }
         
+        CGImageDestinationAddImage(imageDestination, image, nil)
+        CGImageDestinationFinalize(imageDestination)
+        
         do {
-            let url = try documentUrlForFile(withName: "DitheredImage.png", storing: imageData)
+            let url = try documentUrlForFile(withName: "DitheredImage.png", storing: imageData as Data)
             exportURL = url
         } catch {
             print("Could not export: ", error)
@@ -255,6 +262,7 @@ struct ToolbarView: View {
     }
     
     func share(data: Data, name: String) {
+        #if canImport(UIKit)
         do {
             let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene
             guard let root = scene?.windows.first?.rootViewController else { return }
@@ -268,6 +276,7 @@ struct ToolbarView: View {
         } catch {
             print(error)
         }
+        #endif
     }
     
 }
