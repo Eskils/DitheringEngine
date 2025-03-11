@@ -12,4 +12,12 @@ typealias PlatformImage = UIImage
 #elseif canImport(AppKit)
 import AppKit
 typealias PlatformImage = NSImage
+
+import AppKit
+extension NSImage {
+    var cgImage: CGImage? {
+        self.cgImage(forProposedRect: nil, context: nil, hints: nil)
+    }
+}
+
 #endif
