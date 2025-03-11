@@ -5,26 +5,43 @@
 //  Created by Eskil Gjerde Sviggum on 11/03/2025.
 //
 
-import UIKit
+import CoreGraphics
+import CoreImage
 
-func renderImageInPlace(_ image: UIImage, renderSize: CGSize, imageFrame: CGRect, isRunning: Bool) -> UIImage {
+func renderImageInPlace(_ image: CGImage?, renderSize: CGSize, imageFrame: CGRect, isRunning: Bool) -> CGImage? {
     var image = image
     
     if isRunning {
-        image = image.blur(radius: 5) ?? image
+        image = image?.blur(radius: 5) ?? image
     }
     
-    let renderer = UIGraphicsImageRenderer(size: renderSize)
+    let bitmapInfo = CGBitmapInfo(rawValue: (CGBitmapInfo.byteOrder32Big.rawValue | CGImageAlphaInfo.premultipliedLast.rawValue))
+    
+    let width = Int(renderSize.width)
+    let height = Int(renderSize.height)
+    let context = CGContext(
+        data: nil,
+        width: width,
+        height: height,
+        bitsPerComponent: 8,
+        bytesPerRow: 0,
+        space: CGColorSpaceCreateDeviceRGB(),
+        bitmapInfo: bitmapInfo.rawValue
+    )
+    assert(context != nil)
     
     let frame = CGRect(x: imageFrame.minX - imageFrame.width / 2, y: imageFrame.minY - imageFrame.height / 2, width: imageFrame.width, height: imageFrame.height)
     let scale = imageFrame.width / renderSize.width
     
-    let result = renderer.image { context in
-        context.cgContext.interpolationQuality = interpolationQuality(forScale: scale)
-        image.draw(in: frame)
+    context?.interpolationQuality = interpolationQuality(forScale: scale)
+    if let image {
+        context?.draw(image, in: frame)
     }
     
-    return result
+    let resultImage = context?.makeImage()
+    assert(resultImage != nil)
+    
+    return resultImage
 }
 
 private func interpolationQuality(forScale scale: Double) -> CGInterpolationQuality {
