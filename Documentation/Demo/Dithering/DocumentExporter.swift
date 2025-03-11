@@ -5,6 +5,7 @@
 //  Created by Eskil Gjerde Sviggum on 18/11/2023.
 //
 
+#if canImport(UIKit)
 import SwiftUI
 
 struct DocumentExporter: UIViewControllerRepresentable {
@@ -21,3 +22,4 @@ struct DocumentExporter: UIViewControllerRepresentable {
     }
 
 }
+#endif

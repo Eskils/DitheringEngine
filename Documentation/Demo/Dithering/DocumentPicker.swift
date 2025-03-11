@@ -5,6 +5,7 @@
 //  Created by Eskil Gjerde Sviggum on 17/03/2023.
 //
 
+#if canImport(UIKit)
 import SwiftUI
 
 struct DocumentPicker: UIViewControllerRepresentable {
@@ -51,3 +52,4 @@ struct DocumentPicker: UIViewControllerRepresentable {
     }
 
 }
+#endif
