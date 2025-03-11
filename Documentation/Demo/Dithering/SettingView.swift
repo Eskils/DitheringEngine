@@ -189,7 +189,7 @@ struct TitleLabel: View {
     var body: some View {
         Text(title)
             .font(.caption)
-            .foregroundColor(UIColor.tertiaryLabel.toColor())
+            .foregroundColor(Color.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
     
@@ -364,13 +364,17 @@ struct CustomPaletteSettingView: View {
     
     private func didChangeColor() {
         let entries = colors.map {
-            let color = UIColor($0)
-            
             var redDouble: CGFloat = 0
             var greenDouble: CGFloat = 0
             var blueDouble: CGFloat = 0
             
+            #if canImport(UIKit)
+            let color = UIColor($0)
             color.getRed(&redDouble, green: &greenDouble, blue: &blueDouble, alpha: nil)
+            #elseif canImport(AppKit)
+            let color = NSColor($0)
+            color.getRed(&redDouble, green: &greenDouble, blue: &blueDouble, alpha: nil)
+            #endif
             
             let red = UInt8(clamp(redDouble * 255, min: 0, max: 255))
             let green = UInt8(clamp(greenDouble * 255, min: 0, max: 255))
@@ -409,7 +413,7 @@ struct CustomImageSettingView: View {
     @State var selection: MediaFormat?
     
     @State
-    private var patternImage: UIImage?
+    private var patternImage: PlatformImage?
     
     @State
     private var showPhotoPicker = false
@@ -422,7 +426,7 @@ struct CustomImageSettingView: View {
     
     var body: some View {
         HStack {
-            Image(uiImage: patternImage ?? UIImage())
+            Image(platformImage: patternImage)
                 .resizable()
                 .frame(width: 100, height: 100)
                 .background(Color.gray)
@@ -435,6 +439,7 @@ struct CustomImageSettingView: View {
             }
 
         }
+        #if canImport(UIKit)
         .sheet(isPresented: $showPhotoPicker, content: {
             ImagePicker(selection: $selection)
         })
@@ -449,6 +454,7 @@ struct CustomImageSettingView: View {
                 print(error)
             }
         })
+        #endif
         .confirmationDialog("Choose image", isPresented: $showPickPhotoActionSheet) {
             Button("Choose from photos") {
                 showPhotoPicker = true
@@ -482,7 +488,7 @@ struct CustomImageSettingView: View {
             self.description.subject.send(cgImage)
         })
         .onAppear(perform: {
-            self.patternImage = UIImage(named: "bluenoise")
+            self.patternImage = PlatformImage(named: "bluenoise")
         })
     }
 }
