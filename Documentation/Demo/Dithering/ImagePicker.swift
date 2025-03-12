@@ -5,6 +5,7 @@
 //  Created by Eskil Gjerde Sviggum on 29/11/2022.
 //
 
+#if canImport(UIKit)
 import SwiftUI
 import PhotosUI
 
@@ -73,3 +74,4 @@ struct ImagePicker: UIViewControllerRepresentable {
     
     
 }
+#endif

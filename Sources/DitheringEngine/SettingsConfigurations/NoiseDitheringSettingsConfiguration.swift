@@ -9,6 +9,8 @@ import Combine
 import CoreGraphics
 #if canImport(UIKit)
 import UIKit
+#elseif canImport(AppKit)
+import AppKit
 #endif
 
 public final class NoiseDitheringSettingsConfiguration: SettingsConfiguration {
@@ -38,7 +40,6 @@ public final class NoiseDitheringSettingsConfiguration: SettingsConfiguration {
     
 }
 
-#if canImport(UIKit)
 extension NoiseDitheringSettingsConfiguration: Codable {
     
     enum CodingKeys: String, CodingKey {
@@ -48,7 +49,8 @@ extension NoiseDitheringSettingsConfiguration: Codable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         
-        let data = noisePattern.value.flatMap { UIImage(cgImage: $0).pngData() }
+        
+        let data = try noisePattern.value.map { try CGImageDataTransformer.data(from: $0) }
         
         try container.encodeIfPresent(data, forKey: .noisePattern)
         try container.encode(performOnCPU.value, forKey: .performOnCPU)
@@ -58,9 +60,9 @@ extension NoiseDitheringSettingsConfiguration: Codable {
     public convenience init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
-        let data = try container.decode(Data.self, forKey: .noisePattern)
+        let noisePatternData = try container.decode(Data.self, forKey: .noisePattern)
         
-        let noisePattern = UIImage(data: data)?.cgImage
+        let noisePattern = try CGImageDataTransformer.image(from: noisePatternData)
         let performOnCPU = try container.decode(Bool.self, forKey: .performOnCPU)
         let intensity = try container.decode(Float.self, forKey: .intensity)
         
@@ -68,4 +70,4 @@ extension NoiseDitheringSettingsConfiguration: Codable {
     }
     
 }
-#endif
+

@@ -12,11 +12,20 @@ import DitheringEngine
 struct ToolbarView: View {
     
     @State var selection: MediaFormat?
-    @State var selectedImage: UIImage? = nil
+    @State var selectedImage: PlatformImage? = nil
     @State var showImagePicker = false
     @State var showFilePicker = false
     
-    @State var exportURL: URL?
+    #if canImport(AppKit)
+    @State var showFileExporter = false
+    #endif
+    @State var exportURL: URL? {
+        didSet {
+        #if canImport(AppKit)
+            showFileExporter = exportURL != nil
+        #endif
+        }
+    }
     
     @State var error: Error?
     @State var showErrorAlert = false
@@ -52,14 +61,16 @@ struct ToolbarView: View {
             
             Text("Choose an image or a video to dither")
                 .font(.body)
-                .foregroundStyle(Color(UIColor.secondaryLabel))
+                .foregroundColor(Color.secondary)
             
             VStack(spacing: 16) {
+                #if canImport(UIKit)
                 Button(action: didPressChooseImage) {
                     Label(title: { Text("Choose from Photos") },
                           icon: SF.photo.on.rectangle.swiftUIImage)
                 }
                 .buttonStyle(BorderedButtonStyle())
+                #endif
                 
                 Button(action: didPressChooseImageFromFile) {
                     Label(title: { Text("Choose from file") },
@@ -125,11 +136,35 @@ struct ToolbarView: View {
         }
         .padding(8)
         .onChange(of: selection) { didChoose(media: $0) }
+        #if canImport(UIKit)
         .sheet(isPresented: $showImagePicker) { ImagePicker(selection: $selection) }
         .sheet(isPresented: $showFilePicker) { DocumentPicker(selection: $selection) }
         .sheet(item: $exportURL) { url in
             DocumentExporter(exporting: url)
         }
+        #elseif canImport(AppKit)
+        .fileImporter(isPresented: $showFilePicker, allowedContentTypes: [.image, .video, .mpeg4Movie, .movie]) { result in
+            switch result {
+            case .success(let url):
+                if let data = try? Data(contentsOf: url),
+                   let image = PlatformImage(data: data) {
+                    self.selection = .image(image)
+                } else {
+                    self.selection = .video(url)
+                }
+            case .failure(let error):
+                print(error)
+            }
+        }
+        .fileMover(isPresented: $showFileExporter, file: exportURL) { result in
+            switch result {
+            case .success(let url):
+                break
+            case .failure(let error):
+                print(error)
+            }
+        }
+        #endif
         .alert("An error occured", isPresented: $showErrorAlert, actions: {
             Button(action: {}) {
                 Text("Ok")
@@ -159,7 +194,7 @@ struct ToolbarView: View {
     }
     
     func didAppear() {
-        guard let image = UIImage(named: "Bergen") else {
+        guard let image = PlatformImage(named: "Bergen") else {
             return
         }
         
@@ -186,7 +221,7 @@ struct ToolbarView: View {
     }
     
     @MainActor
-    func didChoose(image: UIImage) {
+    func didChoose(image: PlatformImage) {
         guard let cgImage = image.cgImage else {
             return
         }
@@ -205,15 +240,20 @@ struct ToolbarView: View {
     }
     
     private func exportImage() {
+        let imageData = NSMutableData()
+        
         guard
-            let image = viewModel.appState.finalImage?.toUIImage(),
-            let imageData = image.pngData()
+            let image = viewModel.appState.finalImage,
+            let imageDestination = CGImageDestinationCreateWithData(imageData as CFMutableData, "public.png" as CFString, 1, nil)
         else {
             return
         }
         
+        CGImageDestinationAddImage(imageDestination, image, nil)
+        CGImageDestinationFinalize(imageDestination)
+        
         do {
-            let url = try documentUrlForFile(withName: "DitheredImage.png", storing: imageData)
+            let url = try documentUrlForFile(withName: "DitheredImage.png", storing: imageData as Data)
             exportURL = url
         } catch {
             print("Could not export: ", error)
@@ -255,6 +295,7 @@ struct ToolbarView: View {
     }
     
     func share(data: Data, name: String) {
+        #if canImport(UIKit)
         do {
             let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene
             guard let root = scene?.windows.first?.rootViewController else { return }
@@ -268,6 +309,7 @@ struct ToolbarView: View {
         } catch {
             print(error)
         }
+        #endif
     }
     
 }

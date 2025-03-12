@@ -33,15 +33,24 @@ struct ImageViewerView: View {
         GeometryReader { geo in
             ZStack {
                 ZStack {
-                    Image(uiImage: mergedImage(geo: geo, rect: imageRect, originalImage: appState.originalImage, finalImage: appState.finalImage, shouldShowOriginalImage: shouldShowOriginalImage, isRunning: appState.isRunning))
-                        .resizable()
-                        .interpolation(.none)
-                        .frame(width: geo.size.width, height: geo.size.height)
-                        .gesture(
-                            DragGesture().simultaneously(with: MagnificationGesture())
-                                .onChanged(shouldTransformImage(gestureResult:))
-                                .onEnded(commitTransformImage(gestureResult:))
-                        )
+                    if let image = mergedImage(
+                        geo: geo,
+                        rect: imageRect,
+                        originalImage: appState.originalImage,
+                        finalImage: appState.finalImage,
+                        shouldShowOriginalImage: shouldShowOriginalImage,
+                        isRunning: appState.isRunning
+                    ) {
+                        Image(decorative: image, scale: 1)
+                            .resizable()
+                            .interpolation(.none)
+                            .frame(width: geo.size.width, height: geo.size.height)
+                            .gesture(
+                                DragGesture().simultaneously(with: MagnificationGesture())
+                                    .onChanged(shouldTransformImage(gestureResult:))
+                                    .onEnded(commitTransformImage(gestureResult:))
+                            )
+                    }
                 }
                 .overlay {
                     if appState.isRunning {
@@ -83,7 +92,8 @@ struct ImageViewerView: View {
                 .padding(.trailing, 16)
                 .padding(.top, 16)
                 
-            }.background(Color(UIColor.systemGray6))
+            }
+            .background(Material.ultraThin)
         }
         .onReceive(appState.$originalImage, perform: didChange(image:))
     }
@@ -110,17 +120,15 @@ struct ImageViewerView: View {
         return max(geo.size.width / 2, (wid / 2))
     }
     
-    func mergedImage(geo: GeometryProxy, rect: CGRect, originalImage: CGImage?, finalImage: CGImage?, shouldShowOriginalImage: Bool, isRunning: Bool) -> UIImage {
-        var img: UIImage!
-        if shouldShowOriginalImage {
-            img = originalImage?.toUIImage() ?? UIImage()
-        } else {
-            img = finalImage?.toUIImage() ?? UIImage()
-        }
+    func mergedImage(geo: GeometryProxy, rect: CGRect, originalImage: CGImage?, finalImage: CGImage?, shouldShowOriginalImage: Bool, isRunning: Bool) -> CGImage? {
+        let image = shouldShowOriginalImage ? originalImage : finalImage
         
-        let pos = CGPoint(x: imageRect.minX * imageScale() + (geo.size.width / 2), y: imageRect.minY * imageScale() + (geo.size.height / 2))
+        let pos = CGPoint(
+            x: imageRect.minX * imageScale() + (geo.size.width / 2),
+            y: geo.size.height - (imageRect.minY * imageScale() + (geo.size.height / 2))
+        )
         
-        return renderImageInPlace(img, renderSize: geo.size, imageFrame: CGRect(origin: pos, size: rect.size), isRunning: isRunning)
+        return renderImageInPlace(image, renderSize: geo.size, imageFrame: CGRect(origin: pos, size: rect.size), isRunning: isRunning)
     }
     
     func shouldTransformImage(gestureResult: SimultaneousGesture<DragGesture, MagnificationGesture>.Value) {

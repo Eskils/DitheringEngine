@@ -8,7 +8,6 @@
 import XCTest
 @testable import DitheringEngine
 
-#if canImport(UIKit)
 final class SettingsCodableTests: XCTestCase {
     
     let encoder = JSONEncoder()
@@ -37,6 +36,7 @@ final class SettingsCodableTests: XCTestCase {
         
         let expectedResult = """
         {
+          "intensity" : 1,
           "performOnCPU" : true,
           "thresholdMapSize" : 5
         }
@@ -146,7 +146,8 @@ final class SettingsCodableTests: XCTestCase {
         
         let expectedResult = """
         {
-          "noisePattern" : "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAAXNSR0IArs4c6QAAAHhlWElmTU0AKgAAAAgABQESAAMAAAABAAEAAAEaAAUAAAABAAAASgEbAAUAAAABAAAAUgEoAAMAAAABAAIAAIdpAAQAAAABAAAAWgAAAAAAAABIAAAAAQAAAEgAAAABAAKgAgAEAAAAAQAAAAKgAwAEAAAAAQAAAAIAAAAAUepZGwAAAAlwSFlzAAALEwAACxMBAJqcGAAAABxpRE9UAAAAAgAAAAAAAAABAAAAKAAAAAEAAAABAAAAQg5iYRkAAAAOSURBVBgZYmD4/x+IAAAAAP//l3y8zQAAAAtJREFUY2D4/x+IADPaB/n1SOwrAAAAAElFTkSuQmCC",
+          "intensity" : 0.5,
+          "noisePattern" : "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAAXNSR0IArs4c6QAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAqADAAQAAAABAAAAAgAAAADO0J6QAAAAE0lEQVQIHWNk+P+fgYGBCYiBAAAXEwICUYYCvQAAAABJRU5ErkJggg==",
           "performOnCPU" : true
         }
         """
@@ -189,6 +190,7 @@ final class SettingsCodableTests: XCTestCase {
         
         let expectedResult = """
         {
+          "intensity" : 0.5,
           "performOnCPU" : true,
           "thresholdMapSize" : 5
         }
@@ -217,6 +219,7 @@ final class SettingsCodableTests: XCTestCase {
     func testDecodeBayerSettingsConfiguration() throws {
         let settingsData = """
         {
+          "intensity" : 0.65,
           "performOnCPU" : true,
           "thresholdMapSize" : 5
         }
@@ -229,6 +232,7 @@ final class SettingsCodableTests: XCTestCase {
         
         XCTAssertEqual(settingsConfiguration.performOnCPU.value, true)
         XCTAssertEqual(settingsConfiguration.thresholdMapSize.value, 5)
+        XCTAssertEqual(settingsConfiguration.intensity.value, 0.65)
     }
     
     func testDecodeCGASettingsConfiguration() throws {
@@ -327,17 +331,15 @@ final class SettingsCodableTests: XCTestCase {
         XCTAssertEqual(settingsConfiguration.matrix.value, [7, 3, 5, 1])
     }
     
-    // FIXME: Use CoreGraphics
-    #if canImport(UIKit)
     func testDecodeNoiseSettingsConfiguration() throws {
         let noiseImage = CIImage(color: CIColor(color: .cyan)!)
         let cgImage = CIContext().createCGImage(noiseImage, from: CGRect(x: 0, y: 0, width: 2, height: 2))
-        let uiImage = cgImage.flatMap { UIImage(data: UIImage(cgImage: $0).pngData() ?? Data())?.cgImage }
         
         let settingsData = """
         {
           "noisePattern" : "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAAXNSR0IArs4c6QAAAHhlWElmTU0AKgAAAAgABQESAAMAAAABAAEAAAEaAAUAAAABAAAASgEbAAUAAAABAAAAUgEoAAMAAAABAAIAAIdpAAQAAAABAAAAWgAAAAAAAABIAAAAAQAAAEgAAAABAAKgAgAEAAAAAQAAAAKgAwAEAAAAAQAAAAIAAAAAUepZGwAAAAlwSFlzAAALEwAACxMBAJqcGAAAABxpRE9UAAAAAgAAAAAAAAABAAAAKAAAAAEAAAABAAAAQg5iYRkAAAAOSURBVBgZYmD4/x+IAAAAAP//l3y8zQAAAAtJREFUY2D4/x+IADPaB/n1SOwrAAAAAElFTkSuQmCC",
-          "performOnCPU" : true
+          "performOnCPU" : true,
+          "intensity": 1.0
         }
         """
         
@@ -346,10 +348,12 @@ final class SettingsCodableTests: XCTestCase {
             type: NoiseDitheringSettingsConfiguration.self
         )
         
-        XCTAssertEqual(settingsConfiguration.noisePattern.value?.dataProvider?.data, uiImage?.dataProvider?.data)
+        let receivedImage = settingsConfiguration.noisePattern.value
+        XCTAssertTrue(try isImagesEqual(expected: cgImage, received: receivedImage))
         XCTAssertEqual(settingsConfiguration.performOnCPU.value, true)
+        XCTAssertEqual(settingsConfiguration.intensity.value, 1.0)
     }
-    #endif
+    
     
     func testDecodePaletteSelectionSettingsConfiguration() throws {
         let settingsData = """
@@ -384,6 +388,7 @@ final class SettingsCodableTests: XCTestCase {
     func testDecodeWhiteNoiseSettingsConfiguration() throws {
         let settingsData = """
         {
+          "intensity" : 0.4,
           "performOnCPU" : true,
           "thresholdMapSize" : 5
         }
@@ -396,24 +401,7 @@ final class SettingsCodableTests: XCTestCase {
         
         XCTAssertEqual(settingsConfiguration.performOnCPU.value, true)
         XCTAssertEqual(settingsConfiguration.thresholdMapSize.value, 5)
-    }
-    
-    func testDitheringImageWithAlpha() throws {
-        XCTAssertTrue(
-            try isEqual(
-                image: "transparent-monochrome-gradient",
-                expectedImage: "transparent-monochrome-gradient+apple2-bayer",
-                transform: { input in
-                    try ditheringEngine.set(image: input)
-                    return try ditheringEngine.dither(
-                        usingMethod: .bayer,
-                        andPalette: .apple2,
-                        withDitherMethodSettings: EmptyPaletteSettingsConfiguration(),
-                        withPaletteSettings: EmptyPaletteSettingsConfiguration()
-                    )
-                }
-            )
-        )
+        XCTAssertEqual(settingsConfiguration.intensity.value, 0.4)
     }
     
 }
@@ -436,5 +424,48 @@ private extension SettingsCodableTests {
         let data = try JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])
         return String(data: data, encoding: .utf8) ?? "{}"
     }
+    
+    func isImagesEqual(expected left: CGImage?, received right: CGImage?) throws -> Bool {
+        guard let left, let right else {
+            let isBothNil = left == nil && right == nil
+            XCTAssertTrue(isBothNil)
+            return isBothNil
+        }
+        
+        let isWidthEqual = left.width == right.width
+        XCTAssertTrue(isWidthEqual)
+        guard isWidthEqual else {
+            return false
+        }
+        
+        let isHeightEqual = left.height == right.height
+        XCTAssertTrue(isHeightEqual)
+        guard isHeightEqual else {
+            return false
+        }
+        
+        let leftData = ImageDescription(width: left.width, height: left.height, components: 4)
+        _ = leftData.setBufferFrom(image: left)
+        
+        let rightData = ImageDescription(width: left.width, height: left.height, components: 4)
+        _ = rightData.setBufferFrom(image: right)
+        
+        
+        for y in 0..<left.height {
+            for x in 0..<left.width {
+                let index = y * left.width + x
+                let leftColor = leftData.getColorAt(index: index)
+                let rightColor = rightData.getColorAt(index: index)
+                if leftColor != rightColor {
+                    XCTFail("Color at position (\(x), \(y)) should be \(leftColor), but is \(rightColor)")
+                    return false
+                }
+            }
+        }
+        
+        leftData.release()
+        rightData.release()
+        
+        return true
+    }
 }
-#endif

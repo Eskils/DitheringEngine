@@ -17,7 +17,7 @@ struct ContentView: View {
         self.videoDitheringEngine = VideoDitheringEngine()
     }
     
-    @State var finalImage: UIImage?
+    @State var finalImage: PlatformImage?
     
     @State var cancellables = Set<AnyCancellable>()
     

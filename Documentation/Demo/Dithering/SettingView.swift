@@ -189,7 +189,7 @@ struct TitleLabel: View {
     var body: some View {
         Text(title)
             .font(.caption)
-            .foregroundColor(UIColor.tertiaryLabel.toColor())
+            .foregroundColor(Color.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
     
@@ -364,13 +364,17 @@ struct CustomPaletteSettingView: View {
     
     private func didChangeColor() {
         let entries = colors.map {
-            let color = UIColor($0)
-            
             var redDouble: CGFloat = 0
             var greenDouble: CGFloat = 0
             var blueDouble: CGFloat = 0
             
+            #if canImport(UIKit)
+            let color = UIColor($0)
             color.getRed(&redDouble, green: &greenDouble, blue: &blueDouble, alpha: nil)
+            #elseif canImport(AppKit)
+            let color = NSColor($0)
+            color.getRed(&redDouble, green: &greenDouble, blue: &blueDouble, alpha: nil)
+            #endif
             
             let red = UInt8(clamp(redDouble * 255, min: 0, max: 255))
             let green = UInt8(clamp(greenDouble * 255, min: 0, max: 255))
@@ -409,7 +413,7 @@ struct CustomImageSettingView: View {
     @State var selection: MediaFormat?
     
     @State
-    private var patternImage: UIImage?
+    private var patternImage: PlatformImage?
     
     @State
     private var showPhotoPicker = false
@@ -422,29 +426,48 @@ struct CustomImageSettingView: View {
     
     var body: some View {
         HStack {
-            Image(uiImage: patternImage ?? UIImage())
+            Image(platformImage: patternImage)
                 .resizable()
                 .frame(width: 100, height: 100)
                 .background(Color.gray)
                 .border(Color.black)
             
             Button {
+                #if canImport(UIKit)
                 showPickPhotoActionSheet = true
+                #elseif canImport(AppKit)
+                let panel = NSOpenPanel()
+                panel.allowedContentTypes = [.image]
+                panel.allowsMultipleSelection = false
+                let completionHandler: (NSApplication.ModalResponse) -> Void = { response in
+                    guard response == .OK else {
+                        return
+                    }
+                    
+                    if let url = panel.url {
+                        didSelectImage(at: url)
+                    }
+                }
+                
+                if let window = NSApplication.shared.mainWindow {
+                    panel.beginSheetModal(for: window, completionHandler: completionHandler)
+                } else {
+                    panel.begin(completionHandler: completionHandler)
+                }
+                #endif
             } label: {
                 Text("Choose image")
             }
 
         }
+        #if canImport(UIKit)
         .sheet(isPresented: $showPhotoPicker, content: {
             ImagePicker(selection: $selection)
         })
         .fileImporter(isPresented: $showDocumentPicker, allowedContentTypes: [.image], onCompletion: { result in
             switch result {
             case .success(let url):
-                if let data = try? Data(contentsOf: url),
-                   let image = UIImage(data: data) {
-                    self.patternImage = image
-                }
+                didSelectImage(at: url)
             case .failure(let error):
                 print(error)
             }
@@ -458,6 +481,7 @@ struct CustomImageSettingView: View {
                 showDocumentPicker = true
             }
         }
+        #endif
         .onChange(of: selection, perform: { mediaFormat in
             guard let mediaFormat else {
                 return
@@ -482,8 +506,15 @@ struct CustomImageSettingView: View {
             self.description.subject.send(cgImage)
         })
         .onAppear(perform: {
-            self.patternImage = UIImage(named: "bluenoise")
+            self.patternImage = PlatformImage(named: "bluenoise")
         })
+    }
+    
+    private func didSelectImage(at url: URL) {
+        if let data = try? Data(contentsOf: url),
+           let image = PlatformImage(data: data) {
+            self.patternImage = image
+        }
     }
 }
 
