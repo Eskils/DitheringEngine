@@ -16,7 +16,16 @@ struct ToolbarView: View {
     @State var showImagePicker = false
     @State var showFilePicker = false
     
-    @State var exportURL: URL?
+    #if canImport(AppKit)
+    @State var showFileExporter = false
+    #endif
+    @State var exportURL: URL? {
+        didSet {
+        #if canImport(AppKit)
+            showFileExporter = exportURL != nil
+        #endif
+        }
+    }
     
     @State var error: Error?
     @State var showErrorAlert = false
@@ -55,11 +64,13 @@ struct ToolbarView: View {
                 .foregroundColor(Color.secondary)
             
             VStack(spacing: 16) {
+                #if canImport(UIKit)
                 Button(action: didPressChooseImage) {
                     Label(title: { Text("Choose from Photos") },
                           icon: SF.photo.on.rectangle.swiftUIImage)
                 }
                 .buttonStyle(BorderedButtonStyle())
+                #endif
                 
                 Button(action: didPressChooseImageFromFile) {
                     Label(title: { Text("Choose from file") },
@@ -130,6 +141,28 @@ struct ToolbarView: View {
         .sheet(isPresented: $showFilePicker) { DocumentPicker(selection: $selection) }
         .sheet(item: $exportURL) { url in
             DocumentExporter(exporting: url)
+        }
+        #elseif canImport(AppKit)
+        .fileImporter(isPresented: $showFilePicker, allowedContentTypes: [.image, .video, .mpeg4Movie, .movie]) { result in
+            switch result {
+            case .success(let url):
+                if let data = try? Data(contentsOf: url),
+                   let image = PlatformImage(data: data) {
+                    self.selection = .image(image)
+                } else {
+                    self.selection = .video(url)
+                }
+            case .failure(let error):
+                print(error)
+            }
+        }
+        .fileMover(isPresented: $showFileExporter, file: exportURL) { result in
+            switch result {
+            case .success(let url):
+                break
+            case .failure(let error):
+                print(error)
+            }
         }
         #endif
         .alert("An error occured", isPresented: $showErrorAlert, actions: {
