@@ -52,7 +52,7 @@ struct ToolbarView: View {
             
             Text("Choose an image or a video to dither")
                 .font(.body)
-                .foregroundStyle(Color.secondary)
+                .foregroundColor(Color.secondary)
             
             VStack(spacing: 16) {
                 Button(action: didPressChooseImage) {
