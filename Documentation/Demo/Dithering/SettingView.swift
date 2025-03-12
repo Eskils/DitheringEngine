@@ -433,7 +433,28 @@ struct CustomImageSettingView: View {
                 .border(Color.black)
             
             Button {
+                #if canImport(UIKit)
                 showPickPhotoActionSheet = true
+                #elseif canImport(AppKit)
+                let panel = NSOpenPanel()
+                panel.allowedContentTypes = [.image]
+                panel.allowsMultipleSelection = false
+                let completionHandler: (NSApplication.ModalResponse) -> Void = { response in
+                    guard response == .OK else {
+                        return
+                    }
+                    
+                    if let url = panel.url {
+                        didSelectImage(at: url)
+                    }
+                }
+                
+                if let window = NSApplication.shared.mainWindow {
+                    panel.beginSheetModal(for: window, completionHandler: completionHandler)
+                } else {
+                    panel.begin(completionHandler: completionHandler)
+                }
+                #endif
             } label: {
                 Text("Choose image")
             }
@@ -446,15 +467,11 @@ struct CustomImageSettingView: View {
         .fileImporter(isPresented: $showDocumentPicker, allowedContentTypes: [.image], onCompletion: { result in
             switch result {
             case .success(let url):
-                if let data = try? Data(contentsOf: url),
-                   let image = UIImage(data: data) {
-                    self.patternImage = image
-                }
+                didSelectImage(at: url)
             case .failure(let error):
                 print(error)
             }
         })
-        #endif
         .confirmationDialog("Choose image", isPresented: $showPickPhotoActionSheet) {
             Button("Choose from photos") {
                 showPhotoPicker = true
@@ -464,6 +481,7 @@ struct CustomImageSettingView: View {
                 showDocumentPicker = true
             }
         }
+        #endif
         .onChange(of: selection, perform: { mediaFormat in
             guard let mediaFormat else {
                 return
@@ -490,6 +508,13 @@ struct CustomImageSettingView: View {
         .onAppear(perform: {
             self.patternImage = PlatformImage(named: "bluenoise")
         })
+    }
+    
+    private func didSelectImage(at url: URL) {
+        if let data = try? Data(contentsOf: url),
+           let image = PlatformImage(data: data) {
+            self.patternImage = image
+        }
     }
 }
 
