@@ -123,7 +123,10 @@ struct ImageViewerView: View {
     func mergedImage(geo: GeometryProxy, rect: CGRect, originalImage: CGImage?, finalImage: CGImage?, shouldShowOriginalImage: Bool, isRunning: Bool) -> CGImage? {
         let image = shouldShowOriginalImage ? originalImage : finalImage
         
-        let pos = CGPoint(x: imageRect.minX * imageScale() + (geo.size.width / 2), y: imageRect.minY * imageScale() + (geo.size.height / 2))
+        let pos = CGPoint(
+            x: imageRect.minX * imageScale() + (geo.size.width / 2),
+            y: geo.size.height - (imageRect.minY * imageScale() + (geo.size.height / 2))
+        )
         
         return renderImageInPlace(image, renderSize: geo.size, imageFrame: CGRect(origin: pos, size: rect.size), isRunning: isRunning)
     }
