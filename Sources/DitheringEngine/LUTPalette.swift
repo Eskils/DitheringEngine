@@ -86,18 +86,15 @@ public struct LUTPalette<Color: ImageColor> {
                 lut.getEntryAt(index: $0).toUInt8()
             }
             if lut.isColor {
-                #if DEBUG
-                let count = min(4, colors.count)
-                #else
-                let count = min(8, colors.count)
-                #endif
-                let stride = colors.count / count
-                return (0..<count).flatMap { r in
+                let count = Int(round(sqrt(Float(colors.count)) + 1))
+                let stride = Int(ceil(Float(colors.count) / Float(count)))
+                let max = colors.count - 1
+                return (0..<count).flatMap { b in
                     (0..<count).flatMap { g in
-                        (0..<count).map { b in
-                            let red     = colors[r * stride]
-                            let green   = colors[g * stride]
-                            let blue    = colors[b * stride]
+                        (0..<count).map { r in
+                            let red     = colors[min(r * stride, max)]
+                            let green   = colors[min(g * stride, max)]
+                            let blue    = colors[min(b * stride, max)]
                             
                             return SIMD3(x: red, y: green, z: blue)
                         }
