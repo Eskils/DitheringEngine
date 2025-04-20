@@ -19,6 +19,9 @@ public struct VideoDitheringEngine {
     /// Number of frames to process concurrently (per batch). Default is 5. A greater number might be faster, but will use more memory.
     public var numberOfConcurrentFrames = 5
     
+    /// Whether to copy the alpha channel from the original video to the dithered video. Default is `false`
+    public var preserveTransparency: Bool = false
+    
     private var workItems: Int {
         numberOfConcurrentFrames
     }
@@ -102,8 +105,10 @@ public struct VideoDitheringEngine {
         }
         
         let workItemContexts = (0..<workItems).compactMap { _ -> WorkItemContext? in
+            let ditheringEngine = DitheringEngine()
+            ditheringEngine.preserveTransparency = preserveTransparency
             return WorkItemContext(
-                ditheringEngine: DitheringEngine(),
+                ditheringEngine: ditheringEngine,
                 context: CIContext(),
                 renderSize: videoDescription.renderSize,
                 ditherMethod: ditherMethod,

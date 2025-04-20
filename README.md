@@ -1,7 +1,7 @@
 ![DitheringEngine](Documentation/Resources/DitheringEngineLogo.png)
 # Dithering Engine
 
-Framework for iOS and Mac Catalyst to dither images and videos.
+Framework for iOS and macOS to dither images and videos. Used in [Ditherable](https://www.e-skils.com/projects/ditherable/).
 
 Dithering is the process of adding noise to an image in order for us to perceive the image more colorful.
 
@@ -52,7 +52,7 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/Eskils/DitheringEngine", 
-      .upToNextMinor(from: "1.8.2") // or `.upToNextMajor
+      .upToNextMinor(from: "1.9.0") // or `.upToNextMajor
     )
   ],
   targets: [
@@ -104,6 +104,16 @@ let cgImage = try ditheringEngine.dither(
     withDitherMethodSettings: FloydSteinbergSettingsConfiguration(direction: .leftToRight),
     withPaletteSettings: QuantizedColorSettingsConfiguration(bits: 5)
 )
+```
+
+#### Preserving transparency
+Dithering Engine supports preserving the alpha channel of the input image. The alpha channel is copied from the input to the dithered image without any modifications. You may disable transparency preservation by setting `preserveTransparency` to `false`.
+
+Example: 
+```swift
+let ditheringEngine = DitheringEngine()
+ditheringEngine.preserveTransparency = false
+// ...
 ```
 
 ### Dithering videos

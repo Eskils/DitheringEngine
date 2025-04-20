@@ -13,7 +13,7 @@ import DitheringEngine
 extension ToolbarView {
     
     @MainActor
-    class ViewModel: ObservableObject {
+    final class ViewModel: ObservableObject {
         
         let appState: AppState
         let ditheringEngine: DitheringEngine
@@ -31,10 +31,20 @@ extension ToolbarView {
         @Published
         var isInVideoMode: Bool = false
         
+        @Published
+        var preserveTransparency: Bool = true
+        
+        private var cancellables = Set<AnyCancellable>()
+        
+        private var paletteSettingUpdatesCancellable: AnyCancellable?
+        
+        private var ditherSettingUpdatesCancellable: AnyCancellable?
+        
         init(ditheringEngine: DitheringEngine, videoDitheringEngine: VideoDitheringEngine, appState: AppState) {
             self.ditheringEngine = ditheringEngine
             self.videoDitheringEngine = videoDitheringEngine
             self.appState = appState
+            configureListeners()
         }
         
         func handleNew(image: CGImage) {
@@ -94,16 +104,12 @@ extension ToolbarView {
             listenToDitherSettingUpdates()
         }
         
-        var paletteSettingUpdatesCancellable: AnyCancellable?
-        
         func listenToPaletteSettingUpdates() {
             paletteSettingUpdatesCancellable?.cancel()
             paletteSettingUpdatesCancellable = additionalPaletteSelectionSetting.didChangePublisher.sink { _ in
                 self.performDithering()
             }
         }
-        
-        var ditherSettingUpdatesCancellable: AnyCancellable?
         
         func listenToDitherSettingUpdates() {
             ditherSettingUpdatesCancellable?.cancel()
@@ -204,6 +210,14 @@ extension ToolbarView {
                     print("Failed dithering with error: ", error)
                 }
             }
+        }
+        
+        private func configureListeners() {
+            $preserveTransparency.sink { preserveTransparency in
+                self.ditheringEngine.preserveTransparency = preserveTransparency
+                self.performDithering()
+            }
+            .store(in: &cancellables)
         }
         
     }
