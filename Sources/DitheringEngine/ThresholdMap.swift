@@ -113,7 +113,7 @@ extension ThresholdMap {
         let buffer = UnsafeMutablePointer<Float>.allocate(capacity: image.width * image.width)
         
         for i in 0..<image.width*image.width {
-            let value = image.getColorAt(index: i).x
+            let value = image.getCheckedColorAt(index: i).x
             buffer[i] = Float(value)
         }
         
