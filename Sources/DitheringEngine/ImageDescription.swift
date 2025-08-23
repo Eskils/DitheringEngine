@@ -123,6 +123,18 @@ extension GenericImageDescription {
                      buffer[index + 2])
     }
     
+    func getCheckedColorAt(index i: Int) -> SIMD3<Color> {
+        let index = components * i
+        
+        if i < 0 || index + (components - 1) >= count {
+            return .zero
+        }
+        
+        return SIMD3(buffer[index + 0],
+                     components >= 2 ? buffer[index + 1] : .zero,
+                     components >= 3 ? buffer[index + 2] : .zero)
+    }
+    
     func getColorWithAlphaAt(index i: Int) -> SIMD4<Color> {
         let hasAlpha = components == 4
         
