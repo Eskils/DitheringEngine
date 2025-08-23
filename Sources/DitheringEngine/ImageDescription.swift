@@ -112,12 +112,11 @@ extension GenericImageDescription {
     }
     
     func getColorAt(index i: Int) -> SIMD3<Color> {
-        if i < 0 || components * i + 2 > count {
+        let index = components * i
+        
+        if i < 0 || index + 2 >= count {
             return .zero
         }
-        
-        
-        let index = components * i
         
         return SIMD3(buffer[index + 0],
                      buffer[index + 1],
@@ -151,11 +150,11 @@ extension GenericImageDescription {
     }
     
     func setColorAt(index i: Int, color: SIMD3<Color>) {
-        if components * i + 2 > count {
+        let index = components * i
+        
+        if index + 2 >= count {
             return
         }
-        
-        let index = components * i
         
         buffer[index + 0] = color.x
         buffer[index + 1] = color.y
