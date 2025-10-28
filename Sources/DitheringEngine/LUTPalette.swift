@@ -27,7 +27,7 @@ public struct LUTPalette<Color: ImageColor> {
     private func pickColorFrom<T: ImageColor>(lut: LUT<Color>, basedOn color: SIMD3<T>) -> SIMD3<Color> {
         if lut.isColor {
             let lightness = lightnessOfComponentsIn(color: color)
-            let newColor = lut.getEntryWithThresholds(r: lightness.r, g: lightness.g, b: lightness.b)
+            let newColor = lut.getEntryWithThresholds(r: lightness.x, g: lightness.y, b: lightness.z)
             return newColor
         } else {
             let lightness = lightnessOf(color: color)

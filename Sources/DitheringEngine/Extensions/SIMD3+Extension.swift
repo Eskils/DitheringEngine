@@ -7,25 +7,6 @@
 
 import simd
 
-extension SIMD3 {
-    
-    var r: Scalar {
-        get { self.x }
-        set(value) { self.x = value }
-    }
-    
-    var g: Scalar {
-        get { self.y }
-        set(value) { self.y = value }
-    }
-    
-    var b: Scalar {
-        get { self.z }
-        set(value) { self.z = value }
-    }
-    
-}
-
 extension SIMD3 where Scalar == UInt8 {
     
     static func from32Bits(_ uint32: UInt32) -> Self {
