@@ -210,7 +210,12 @@ extension DitheringEngine {
 extension DitheringEngine {
     
     private func performDithering(usingMethod method: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherSettings: SettingsConfiguration, withPaletteSettings paletteSettings: SettingsConfiguration, imageDescription: ImageDescription, floatingImageDescription: FloatingImageDescription, resultImageDescription: ImageDescription, byteColorCache: ByteByteColorCache?, floatingColorCache: FloatByteColorCache?) {
-        let lut = palette.lut(fromPalettes: palettes, settings: paletteSettings, preferNoGray: method.preferNoGray)
+        let lut = palette.lut(
+            fromPalettes: palettes,
+            settings: paletteSettings,
+            preferNoGray: method.preferNoGray,
+            imageDescription: imageDescription
+        )
         let ditherMethods = DitherMethods(imageDescription: imageDescription, resultImageDescription: resultImageDescription, floatingImageDescription: floatingImageDescription, seed: seed, orderedDitheringMetal: metalOrderedDithering, colorMatchCache: byteColorCache, floatingColorMatchCache: floatingColorCache)
         method.run(withDitherMethods: ditherMethods, lut: lut, settings: ditherSettings)
     }

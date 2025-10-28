@@ -17,7 +17,7 @@ public enum Palette: String, CaseIterable, Codable {
 }
 
 extension Palette {
-    func lut(fromPalettes palettes: Palettes, settings: SettingsConfiguration, preferNoGray: Bool) -> BytePalette {
+    func lut(fromPalettes palettes: Palettes, settings: SettingsConfiguration, preferNoGray: Bool, imageDescription: ImageDescription?) -> BytePalette {
         switch self {
         case .bw:
             return palettes.bwLut()
@@ -40,8 +40,8 @@ extension Palette {
         case .intellivision:
             return palettes.intellivision(preferNoGray: preferNoGray)
         case .custom:
-            let settings = (settings as? CustomPaletteSettingsConfiguration) ?? .init()
-            return settings.palette.value
+            let settings = (settings as? CustomPaletteSettings) ?? CustomPaletteSettingsConfiguration()
+            return settings.palette(imageDescription: imageDescription, preferNoGray: preferNoGray)
         }
     }
     
@@ -67,7 +67,12 @@ extension Palette {
     }
     
     public func colors(settings: SettingsConfiguration) -> [SIMD3<UInt8>] {
-        let palette = lut(fromPalettes: Palettes(), settings: settings, preferNoGray: false)
+        let palette = lut(
+            fromPalettes: Palettes(),
+            settings: settings,
+            preferNoGray: false,
+            imageDescription: nil
+        )
         return palette.colors()
     }
 }

@@ -93,7 +93,12 @@ public struct VideoDitheringEngine {
         let numberOfFrames = videoDescription.numberOfFrames(overrideFramerate: frameRate) ?? 0
         let numberOfBatches = numberOfFrames / workItems
         
-        let lutPalette = palette.lut(fromPalettes: Palettes(), settings: paletteSettings, preferNoGray: ditherMethod.preferNoGray)
+        let lutPalette = palette.lut(
+            fromPalettes: Palettes(),
+            settings: paletteSettings,
+            preferNoGray: ditherMethod.preferNoGray,
+            imageDescription: nil
+        )
         let byteColorCache: ByteByteColorCache?
         let floatingColorCache: FloatByteColorCache?
         if case .lutCollection(let collection) = lutPalette.type, options.contains(.precalculateDitheredColorForAllColors) {
