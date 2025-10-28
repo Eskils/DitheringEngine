@@ -32,7 +32,11 @@ public enum DitherMethod: String, CaseIterable, Codable {
 }
 
 extension DitherMethod {
-    func run(withDitherMethods ditherMethods: DitherMethods, lut: BytePalette, settings: SettingsConfiguration) {
+    func run(
+        withDitherMethods ditherMethods: DitherMethods,
+        lut: BytePalette,
+        settings: SettingsConfiguration
+    ) {
         switch self {
         case .none:
             ditherMethods.none(palette: lut)

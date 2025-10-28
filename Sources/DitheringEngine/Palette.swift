@@ -17,7 +17,12 @@ public enum Palette: String, CaseIterable, Codable {
 }
 
 extension Palette {
-    func lut(fromPalettes palettes: Palettes, settings: SettingsConfiguration, preferNoGray: Bool, imageDescription: ImageDescription?) -> BytePalette {
+    func lut(
+        fromPalettes palettes: Palettes,
+        settings: SettingsConfiguration,
+        preferNoGray: Bool,
+        imageDescription: ImageDescription?
+    ) -> BytePalette {
         switch self {
         case .bw:
             return palettes.bwLut()

@@ -209,18 +209,45 @@ extension DitheringEngine {
 
 extension DitheringEngine {
     
-    private func performDithering(usingMethod method: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherSettings: SettingsConfiguration, withPaletteSettings paletteSettings: SettingsConfiguration, imageDescription: ImageDescription, floatingImageDescription: FloatingImageDescription, resultImageDescription: ImageDescription, byteColorCache: ByteByteColorCache?, floatingColorCache: FloatByteColorCache?) {
+    private func performDithering(
+        usingMethod method: DitherMethod,
+        andPalette palette: Palette,
+        withDitherMethodSettings ditherSettings: SettingsConfiguration,
+        withPaletteSettings paletteSettings: SettingsConfiguration,
+        imageDescription: ImageDescription,
+        floatingImageDescription: FloatingImageDescription,
+        resultImageDescription: ImageDescription,
+        byteColorCache: ByteByteColorCache?,
+        floatingColorCache: FloatByteColorCache?
+    ) {
         let lut = palette.lut(
             fromPalettes: palettes,
             settings: paletteSettings,
             preferNoGray: method.preferNoGray,
             imageDescription: imageDescription
         )
-        let ditherMethods = DitherMethods(imageDescription: imageDescription, resultImageDescription: resultImageDescription, floatingImageDescription: floatingImageDescription, seed: seed, orderedDitheringMetal: metalOrderedDithering, colorMatchCache: byteColorCache, floatingColorMatchCache: floatingColorCache)
-        method.run(withDitherMethods: ditherMethods, lut: lut, settings: ditherSettings)
+        let ditherMethods = DitherMethods(
+            imageDescription: imageDescription,
+            resultImageDescription: resultImageDescription,
+            floatingImageDescription: floatingImageDescription,
+            seed: seed,
+            orderedDitheringMetal: metalOrderedDithering,
+            colorMatchCache: byteColorCache,
+            floatingColorMatchCache: floatingColorCache
+        )
+        method.run(
+            withDitherMethods: ditherMethods,
+            lut: lut,
+            settings: ditherSettings
+        )
     }
     
-    public func dither(usingMethod method: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherSettings: SettingsConfiguration, withPaletteSettings paletteSettings: SettingsConfiguration) throws -> CGImage {
+    public func dither(
+        usingMethod method: DitherMethod,
+        andPalette palette: Palette,
+        withDitherMethodSettings ditherSettings: SettingsConfiguration,
+        withPaletteSettings paletteSettings: SettingsConfiguration
+    ) throws -> CGImage {
         guard
             let imageDescription,
             let floatingImageDescription,
@@ -244,7 +271,14 @@ extension DitheringEngine {
         return try generateResultImage()
     }
     
-    func ditherIntoPixelBuffer(usingMethod method: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherSettings: SettingsConfiguration, withPaletteSettings paletteSettings: SettingsConfiguration, byteColorCache: ByteByteColorCache?, floatingColorCache: FloatByteColorCache?) throws -> CVPixelBuffer {
+    func ditherIntoPixelBuffer(
+        usingMethod method: DitherMethod,
+        andPalette palette: Palette,
+        withDitherMethodSettings ditherSettings: SettingsConfiguration,
+        withPaletteSettings paletteSettings: SettingsConfiguration,
+        byteColorCache: ByteByteColorCache?,
+        floatingColorCache: FloatByteColorCache?
+    ) throws -> CVPixelBuffer {
         guard
             let imageDescription,
             let floatingImageDescription,

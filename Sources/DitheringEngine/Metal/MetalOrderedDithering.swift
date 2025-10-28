@@ -32,7 +32,12 @@ struct MetalFunction {
         return MetalFunction(commandQueue: commandQueue, pipelineState: pipelineState, maxThreads: maxThreads)
     }
     
-    static func makeTexture(width: Int, height: Int, usage: MTLTextureUsage,  device: MTLDevice) -> MTLTexture? {
+    static func makeTexture(
+        width: Int,
+        height: Int,
+        usage: MTLTextureUsage,
+        device: MTLDevice
+    ) -> MTLTexture? {
         let descriptor = MTLTextureDescriptor()
         descriptor.width = width
         descriptor.height = height
@@ -105,7 +110,12 @@ class MetalOrderedDithering {
         }
     }()
     
-    func orderedDitheringMetal(palette: BytePalette, thresholdMap: FloatingThresholdMap, normalizationOffset: Float, thresholdMultiplier: Float) throws {
+    func orderedDitheringMetal(
+        palette: BytePalette,
+        thresholdMap: FloatingThresholdMap,
+        normalizationOffset: Float,
+        thresholdMultiplier: Float
+    ) throws {
         guard let imageDescription, let resultImageDescription else {
             throw MetalOrderedDitheringError.missingImageDescriptions
         }

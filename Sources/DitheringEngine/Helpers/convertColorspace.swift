@@ -8,7 +8,11 @@
 import CoreGraphics
 
 /// Creates a new image by converting colorspace of the image to the one specified.
-func convertColorspaceOf(image: CGImage, toColorSpace colorSpace: CGColorSpace, withBitmapInfo bitmapInfo: UInt32) -> CGImage? {
+func convertColorspaceOf(
+    image: CGImage,
+    toColorSpace colorSpace: CGColorSpace,
+    withBitmapInfo bitmapInfo: UInt32
+) -> CGImage? {
     let rect = CGRect(origin: .zero, size: CGSize(width: image.width, height: image.height))
     
     let context = CGContext(
