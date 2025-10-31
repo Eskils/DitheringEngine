@@ -109,6 +109,24 @@ public struct LUTPalette<Color: ImageColor> {
             return collection.entries.map { $0.toUInt8SIMD3() }
         }
     }
+    
+    /// Add black to the palette if empty.
+    func notEmpty() -> LUTPalette<Color> {
+        switch type {
+        case .lut(let lut):
+            if lut.count == 0 {
+                return LUTPalette(type: .lut(LUT(entries: [.zero], isColor: lut.isColor)))
+            } else {
+                return self
+            }
+        case .lutCollection(let lutCollection):
+            if lutCollection.entries.isEmpty {
+                return LUTPalette(type: .lutCollection(LUTCollection(entries: [.zero])))
+            } else {
+                return self
+            }
+        }
+    }
 }
 
 extension LUTPalette {

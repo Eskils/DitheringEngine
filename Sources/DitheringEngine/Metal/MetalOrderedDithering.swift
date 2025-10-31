@@ -218,7 +218,7 @@ class MetalOrderedDithering {
     }
     
     private func paletteBuffer(fromPalette palette: BytePalette) -> (buffer: UnsafeRawPointer, count: Int)? {
-        switch palette.type {
+        switch palette.notEmpty().type {
         case .lut(let lut):
             (UnsafeRawPointer(lut.buffer), lut.count)
         case .lutCollection(let lutCollection):
