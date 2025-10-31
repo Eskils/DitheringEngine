@@ -6,5 +6,5 @@
 //
 
 public protocol CustomPaletteSettings: SettingsConfiguration {
-    func palette(imageDescription: ImageDescription?, preferNoGray: Bool) -> BytePalette
+    func palette(imageDescription: ImageDescriptionFormat?, preferNoGray: Bool) -> BytePalette
 }

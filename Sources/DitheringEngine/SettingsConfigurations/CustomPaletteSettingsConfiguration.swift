@@ -14,7 +14,7 @@ public final class CustomPaletteSettingsConfiguration: CustomPaletteSettings {
         self.palette = CurrentValueSubject(palette)
     }
     
-    public func palette(imageDescription: ImageDescription?, preferNoGray: Bool) -> BytePalette {
+    public func palette(imageDescription: ImageDescriptionFormat?, preferNoGray: Bool) -> BytePalette {
         palette.value
     }
     

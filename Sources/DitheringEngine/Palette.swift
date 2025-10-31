@@ -21,7 +21,7 @@ extension Palette {
         fromPalettes palettes: Palettes,
         settings: SettingsConfiguration,
         preferNoGray: Bool,
-        imageDescription: ImageDescription?
+        imageDescriptions: ImageDescriptionFormat?
     ) -> BytePalette {
         switch self {
         case .bw:
@@ -46,7 +46,7 @@ extension Palette {
             return palettes.intellivision(preferNoGray: preferNoGray)
         case .custom:
             let settings = (settings as? CustomPaletteSettings) ?? CustomPaletteSettingsConfiguration()
-            return settings.palette(imageDescription: imageDescription, preferNoGray: preferNoGray)
+            return settings.palette(imageDescription: imageDescriptions, preferNoGray: preferNoGray)
         }
     }
     
@@ -76,7 +76,7 @@ extension Palette {
             fromPalettes: Palettes(),
             settings: settings,
             preferNoGray: false,
-            imageDescription: nil
+            imageDescriptions: nil
         )
         return palette.colors()
     }

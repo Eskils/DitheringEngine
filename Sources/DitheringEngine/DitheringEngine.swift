@@ -220,11 +220,15 @@ extension DitheringEngine {
         byteColorCache: ByteByteColorCache?,
         floatingColorCache: FloatByteColorCache?
     ) {
+        let imageDescriptions = ImageDescriptionFormat(
+            byte: imageDescription,
+            float: floatingImageDescription
+        )
         let lut = palette.lut(
             fromPalettes: palettes,
             settings: paletteSettings,
             preferNoGray: method.preferNoGray,
-            imageDescription: imageDescription
+            imageDescriptions: imageDescriptions
         )
         let ditherMethods = DitherMethods(
             imageDescription: imageDescription,

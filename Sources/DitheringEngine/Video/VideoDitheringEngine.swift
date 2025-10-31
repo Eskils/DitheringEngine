@@ -125,7 +125,7 @@ public struct VideoDitheringEngine {
             fromPalettes: Palettes(),
             settings: paletteSettings,
             preferNoGray: ditherMethod.preferNoGray,
-            imageDescription: nil
+            imageDescriptions: nil
         )
         let byteColorCache: ByteByteColorCache?
         let floatingColorCache: FloatByteColorCache?
