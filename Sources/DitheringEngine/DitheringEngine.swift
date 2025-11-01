@@ -157,6 +157,25 @@ public class DitheringEngine {
         return try resultImageDescription.makeCGImage()
     }
     
+    /// Answer the colors in `palette` for `settings`.
+    /// - Parameters:
+    ///   - palette: The palette from which to extract colors
+    ///   - settings: Settings for this palette
+    /// - Returns: The list of colors in `palette`
+    public func colors(of palette: Palette, settings: SettingsConfiguration) -> [SIMD3<UInt8>] {
+        var imageDescriptions: ImageDescriptionFormat?
+        if let imageDescription, let floatingImageDescription {
+            imageDescriptions = ImageDescriptionFormat(
+                byte: imageDescription,
+                float: floatingImageDescription
+            )
+        }
+        return palette.colors(
+            settings: settings,
+            imageDescriptions: imageDescriptions
+        )
+    }
+    
     func generateResultPixelBuffer() throws -> CVPixelBuffer {
         guard let resultImageDescription, let imageDescription else {
             throw Error.noImageDescription

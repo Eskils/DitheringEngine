@@ -71,12 +71,19 @@ extension Palette {
         }
     }
     
-    public func colors(settings: SettingsConfiguration) -> [SIMD3<UInt8>] {
+    /// Answer the colors in this palette for `settings`.
+    /// - Parameters:
+    ///   - settings: Settings for this palette
+    ///   - imageDescriptions: Image context, used in palettes that depend on the current image
+    /// - Returns: A list of colors in this palette
+    ///
+    /// Use ``DitheringEngine/DitheringEngine/colors(of:settings:)`` to automatically use the currently set image.
+    public func colors(settings: SettingsConfiguration, imageDescriptions: ImageDescriptionFormat? = nil) -> [SIMD3<UInt8>] {
         let palette = lut(
             fromPalettes: Palettes(),
             settings: settings,
             preferNoGray: false,
-            imageDescriptions: nil
+            imageDescriptions: imageDescriptions
         )
         return palette.colors()
     }
