@@ -26,7 +26,7 @@ extension UInt8: ImageColor {
 extension Float: ImageColor {
     public static var one: Float = 1
     public func toFloat() -> Float { self }
-    public func toUInt8() -> UInt8 { UInt8(self) }
+    public func toUInt8() -> UInt8 { self.isNaN ? 0 : UInt8(self) }
     public func toInt() -> Int { Int(self) }
 }
 
