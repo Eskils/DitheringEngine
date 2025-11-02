@@ -6,6 +6,7 @@
 //
 
 public struct ImageDescriptionFormat {
+    public let imageIdentifier: String
     public let byte: ImageDescription
     public let float: FloatingImageDescription
 }

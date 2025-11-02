@@ -11,6 +11,7 @@ public class DitheringEngine {
     private var imageDescription: ImageDescription?
     private var floatingImageDescription: FloatingImageDescription?
     private var resultImageDescription: ImageDescription?
+    private var imageIdentifier: String = ""
     
     let metalOrderedDithering = MetalOrderedDithering()
     
@@ -92,6 +93,8 @@ public class DitheringEngine {
                 resultImageDescription.buffer.update(repeating: 255, count: resultImageDescription.count)
             }
         }
+        
+        imageIdentifier = String(image.hashValue, radix: 16)
     }
     
     public func set(pixelBuffer: CVPixelBuffer) throws {
@@ -130,6 +133,7 @@ public class DitheringEngine {
             newResultImageDescription.buffer.update(repeating: 255, count: newResultImageDescription.count)
             self.resultImageDescription = newResultImageDescription
         }
+        imageIdentifier = String(pixelBuffer.hashValue, radix: 16)
     }
     
     public func generateOriginalImage() throws -> CGImage {
@@ -166,6 +170,7 @@ public class DitheringEngine {
         var imageDescriptions: ImageDescriptionFormat?
         if let imageDescription, let floatingImageDescription {
             imageDescriptions = ImageDescriptionFormat(
+                imageIdentifier: imageIdentifier,
                 byte: imageDescription,
                 float: floatingImageDescription
             )
@@ -240,6 +245,7 @@ extension DitheringEngine {
         floatingColorCache: FloatByteColorCache?
     ) {
         let imageDescriptions = ImageDescriptionFormat(
+            imageIdentifier: imageIdentifier,
             byte: imageDescription,
             float: floatingImageDescription
         )
