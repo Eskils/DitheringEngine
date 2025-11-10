@@ -40,6 +40,7 @@ Check out the [demo application](./Documentation/Demo/) for iOS and macOS.
      * [Concurrent frame processing](#concurrent-frame-processing)
      * [Video Dither Options](#video-dither-options)
      * [Video Description](#video-description)
+   * [Contributing](#contributing)
 
 ## Installation
 To use this package in a SwiftPM project, you need to set it up as a package dependency:
@@ -670,3 +671,9 @@ You set the video you want to use as input through the `VideoDescription` type. 
 /// Reads the first frame in the video as an image.
 func getPreviewImage() async throws -> CGImage
 ```
+
+## Contributing
+
+Contributions are welcome and encouraged. Feel free to check out the project, submit issues and code patches.
+
+Your feedback is of great value. Open an issue and let me know if you encounter any difficulties or what features you are missing.
