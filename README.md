@@ -33,6 +33,7 @@ Check out the [demo application](./Documentation/Demo/) for iOS and macOS.
       * [Game Boy](#game-boy)
       * [Intellivision](#intellivision)
    * [Creating your own palette](#creating-your-own-palette)
+      * [Adding settings to your custom palette](#adding-settings-to-your-custom-palette)
    * [Video Dithering Engine](#video-dithering-engine)
      * [Ordered dithering is more suitable](#ordered-dithering-is-more-suitable)
      * [Video framerate](#video-framerate)
@@ -509,11 +510,9 @@ let cgImage = try ditheringEngine.dither(
 
 ## Creating your own palette
 
-You can create your own palettes using the appropriate APIs.
-
 ![Floyd-Steinberg dithering with a custom palette](Documentation/Resources/DitheredImageCustomPalette.png)
 
-A palette is represented with the `BytePalette` structure, which can be constructed from a lookup-table (LUT), and a collection of colors (LUTCollection). The most useful is perhaps the LUTCollection.
+A palette is represented with the `BytePalette` structure, which can be constructed from a lookup-table (LUT), or a collection of colors (LUTCollection). The most useful is perhaps the LUTCollection.
 
 If you have an array of UIColors contained in the palette, you first need to extract the color values into a list of `SIMD3<UInt8>`s. This can be done as follows:
 
@@ -533,7 +532,7 @@ let entries = colors.map { color in
 }
 ```
 
-After this, you can make a `LUTCollection` and from it a palette:
+After this, you can make a `LUTCollection`, and from it a palette:
 
 ```swift
 let collection = LUTCollection<UInt8>(entries: entries)
@@ -578,6 +577,21 @@ try ditheringEngine.dither(
     withPaletteSettings: CustomPaletteSettingsConfiguration(palette: palette)
 )
 ```
+
+### Adding settings to your custom palette
+
+You can also write a custom settings implementation to make your palette configurable. The `CustomPaletteSettings` protocol describes the methods you need to implement in order to use the settings with a custom palette.
+
+You need to implement the `palette(imageDescription:preferNoGray:)` method and return a `BytePalette`. This method is called by the dithering engine before dithering an image/video, and when extracting colors from a palette. Below is an overview of the parameters.
+
+| Parameter | Description |
+|-----------|-------------|
+| imageDescription | An optional reference to the currently dithered image. It is nil if no image has been set, or if extracting colors outside of the dithering engine context—for example by calling `colors` directly on a palette. |
+| preferNoGray | The result of certain dithering methods look better in palettes without shades of gray. Use this flag if you are able to filter out gray colors. |
+
+Instances of `CustomPaletteSettingsConfiguration` conform to `CustomPaletteSettings` where the stored `BytePalette` is simply returned when asked for its palette.
+
+Since `CustomPaletteSettings` conforms to  `SettingsConfiguration`, you need to make your palette settings `Codable`. Codable conformance can be utilized to store the settings to disk and recover the exact edits the user has made on an image.
 
 ## Video Dithering Engine
 
