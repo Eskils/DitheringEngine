@@ -10,38 +10,38 @@ import CoreGraphics
 import simd
 import Accelerate
 
-enum PixelOrdering {
+public enum PixelOrdering {
     case bgra
     case rgba
 }
 
-final class GenericImageDescription<Color: ImageColor> {
+public final class GenericImageDescription<Color: ImageColor> {
     /// The width of the image.
-    let width: Int
+    public let width: Int
     
     /// The width of the image.
-    let height: Int
+    public let height: Int
     
     /// The number of color channels in the image
-    let components: Int
+    public let components: Int
     
     /// components • width • height
-    let count: Int
+    public let count: Int
     
     /// width • height
-    let size: Int
+    public let size: Int
     
     /// components • width
-    let bytesPerRow: Int
+    public let bytesPerRow: Int
     
     /// Pointer to the image bytes
-    let buffer: UnsafeMutablePointer<Color>
+    public let buffer: UnsafeMutablePointer<Color>
     
     private let getterBuffer = UnsafeMutablePointer<Color>.allocate(capacity: 4)
     
     private var isReleased: Bool = false
     
-    let pixelOrdering: PixelOrdering
+    public let pixelOrdering: PixelOrdering
     
     /// Initializes an empty image with the specified size and channels.
     init(width: Int, height: Int, components: Int, pixelOrdering: PixelOrdering = .rgba) {
@@ -78,17 +78,17 @@ final class GenericImageDescription<Color: ImageColor> {
     }
 }
 
-typealias ImageDescription = GenericImageDescription<UInt8>
-typealias FloatingImageDescription = GenericImageDescription<Float>
+public typealias ImageDescription = GenericImageDescription<UInt8>
+public typealias FloatingImageDescription = GenericImageDescription<Float>
 
 extension GenericImageDescription {
     
-    enum Component: Int, CaseIterable {
+    public enum Component: Int, CaseIterable {
         case grayscale = 1
         case rgb = 3
         case rgba = 4
         
-        var colorSpace: CGColorSpace {
+        public var colorSpace: CGColorSpace {
             switch self {
             case .grayscale:
                 return CGColorSpaceCreateDeviceGray()
@@ -99,7 +99,7 @@ extension GenericImageDescription {
             }
         }
         
-        var bitmapInfo: UInt32 {
+        public var bitmapInfo: UInt32 {
             switch self {
             case .grayscale:
                 return CGImageAlphaInfo.none.rawValue
@@ -111,20 +111,31 @@ extension GenericImageDescription {
         }
     }
     
-    func getColorAt(index i: Int) -> SIMD3<Color> {
-        if i < 0 || components * i + 2 > count {
+    public func getColorAt(index i: Int) -> SIMD3<Color> {
+        let index = components * i
+        
+        if i < 0 || index + 2 >= count {
             return .zero
         }
-        
-        
-        let index = components * i
         
         return SIMD3(buffer[index + 0],
                      buffer[index + 1],
                      buffer[index + 2])
     }
     
-    func getColorWithAlphaAt(index i: Int) -> SIMD4<Color> {
+    public func getCheckedColorAt(index i: Int) -> SIMD3<Color> {
+        let index = components * i
+        
+        if i < 0 || index + (components - 1) >= count {
+            return .zero
+        }
+        
+        return SIMD3(buffer[index + 0],
+                     components >= 2 ? buffer[index + 1] : .zero,
+                     components >= 3 ? buffer[index + 2] : .zero)
+    }
+    
+    public func getColorWithAlphaAt(index i: Int) -> SIMD4<Color> {
         let hasAlpha = components == 4
         
         if i < 0 || components * i + 3 > count {
@@ -139,7 +150,7 @@ extension GenericImageDescription {
                      hasAlpha ? buffer[index + 3] : .one)
     }
     
-    func getColor(component: ColorComponent, at i: Int) -> Color {
+    public func getColor(component: ColorComponent, at i: Int) -> Color {
         let componentOffset = component.offset
         
         if i < 0 || components * i + componentOffset > count {
@@ -150,19 +161,19 @@ extension GenericImageDescription {
         return buffer[index + componentOffset]
     }
     
-    func setColorAt(index i: Int, color: SIMD3<Color>) {
-        if components * i + 2 > count {
+    public func setColorAt(index i: Int, color: SIMD3<Color>) {
+        let index = components * i
+        
+        if index + 2 >= count {
             return
         }
-        
-        let index = components * i
         
         buffer[index + 0] = color.x
         buffer[index + 1] = color.y
         buffer[index + 2] = color.z
     }
     
-    func setColorWithAlphaAt(index i: Int, color: SIMD4<Color>) {
+    public func setColorWithAlphaAt(index i: Int, color: SIMD4<Color>) {
         if components * i + 3 > count {
             return
         }
@@ -175,7 +186,7 @@ extension GenericImageDescription {
         buffer[index + 3] = color.w
     }
     
-    func setColor(component: ColorComponent, at i: Int, color: Color) {
+    public func setColor(component: ColorComponent, at i: Int, color: Color) {
         let componentOffset = component.offset
         
         if i < 0 || components * i + componentOffset > count {
@@ -283,7 +294,7 @@ extension GenericImageDescription where Color == UInt8 {
         )
     }
     
-    func set(component: ColorComponent, to color: Color) {
+    public func set(component: ColorComponent, to color: Color) {
         var targetBuffer = vImage_Buffer(
             data: UnsafeMutableRawPointer(self.buffer),
             height: vImagePixelCount(self.height),
@@ -300,7 +311,7 @@ extension GenericImageDescription where Color == UInt8 {
     }
     
     /// Converts to FloatingImageDescription
-    func toFloatingImageDescription() -> FloatingImageDescription {
+    public func toFloatingImageDescription() -> FloatingImageDescription {
         let imageDescription = FloatingImageDescription(width: width, height: height, components: components, pixelOrdering: pixelOrdering)
         
         for i in 0..<size {
@@ -313,7 +324,7 @@ extension GenericImageDescription where Color == UInt8 {
     }
     
     /// Converts to FloatingImageDescription and writes to buffer
-    func toFloatingImageDescription(writingTo imageDescription: FloatingImageDescription) {
+    public func toFloatingImageDescription(writingTo imageDescription: FloatingImageDescription) {
         for i in 0..<size {
             let color = getColorAt(index: i)
             let floatingColor = SIMD3<Float>(color)
@@ -323,7 +334,7 @@ extension GenericImageDescription where Color == UInt8 {
     }
     
     /// Generates a CGImage from the image buffer data.
-    func makeCGImage() throws -> CGImage {
+    public func makeCGImage() throws -> CGImage {
         guard let component = Component(rawValue: components) else {
             throw MakeImage.Error.invalidNumberOfComponents
         }
@@ -358,7 +369,7 @@ extension GenericImageDescription where Color == UInt8 {
     }
     
     /// Generates a CVPixelBuffer from the image buffer data.
-    func makePixelBuffer() throws -> CVPixelBuffer {
+    public func makePixelBuffer() throws -> CVPixelBuffer {
         var pixelBuffer: CVPixelBuffer?
         let attrs = [
             kCVPixelBufferCGImageCompatibilityKey: true,
@@ -416,12 +427,12 @@ extension GenericImageDescription where Color == UInt8 {
         return pixelBuffer
     }
     
-    struct MakeImage {
+    public struct MakeImage {
         private init() {}
         
         static let bitsPerComponent = UInt8.bitWidth
         
-        enum Error: Swift.Error {
+        public enum Error: Swift.Error {
             case invalidNumberOfComponents
             case failedToCreateCGContext
             case failedToCreateDataFromCGContext
@@ -436,7 +447,7 @@ extension GenericImageDescription where Color == UInt8 {
 extension GenericImageDescription where Color == Float {
     
     /// Converts to ImageDescription
-    func toImageDescription() -> ImageDescription {
+    public func toImageDescription() -> ImageDescription {
         let imageDescription = ImageDescription(width: width, height: height, components: components)
         
         for i in 0..<size {
@@ -449,7 +460,7 @@ extension GenericImageDescription where Color == Float {
     }
     
     /// Generates a CGImage from the image buffer data.
-    func makeCGImage() throws -> CGImage {
+    public func makeCGImage() throws -> CGImage {
         let imageDescription = self.toImageDescription()
         do {
             let image = try imageDescription.makeCGImage()
@@ -465,7 +476,7 @@ extension GenericImageDescription where Color == Float {
 
 extension GenericImageDescription {
     
-    enum ColorComponent {
+    public enum ColorComponent {
         /// The red channel of the image
         case red
         /// The green channel of the image

@@ -31,7 +31,15 @@ class VideoAssembler {
     let context = CIContext()
     #endif
     
-    init(outputURL: URL, width: Int, height: Int, framerate: Int, sampleRate: Int, transform: CGAffineTransform? = nil, emitFrames: Bool = false) throws {
+    init(
+        outputURL: URL,
+        width: Int,
+        height: Int,
+        framerate: Int,
+        sampleRate: Int,
+        transform: CGAffineTransform? = nil,
+        emitFrames: Bool = false
+    ) throws {
         self.width = width
         self.height = height
         self.framerate = framerate

@@ -177,7 +177,11 @@ extension VideoDescription {
         private let framesToInclude: Int
         private var sampleIndex = 0
         
-        init(assetReader: AVAssetReader, trackReaderOutput: AVAssetReaderTrackOutput, framesToInclude: Int) {
+        init(
+            assetReader: AVAssetReader,
+            trackReaderOutput: AVAssetReaderTrackOutput,
+            framesToInclude: Int
+        ) {
             self.assetReader = assetReader
             self.trackReaderOutput = trackReaderOutput
             self.framesToInclude = framesToInclude

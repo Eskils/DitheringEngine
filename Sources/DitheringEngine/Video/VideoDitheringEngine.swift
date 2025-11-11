@@ -39,7 +39,18 @@ public struct VideoDitheringEngine {
     }
     
     /// Dither video from url using method and palette. Set options and outputURL. ProgressHandler needs a return of `true` to continue, returning false will cancell the dithering and yield an `VideoDitheringError.cancelled` failure in the completion callback.
-    public func dither(video url: URL, resizingTo size: CGSize?, usingMethod ditherMethod: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherMethodSettings: SettingsConfiguration, andPaletteSettings paletteSettings: SettingsConfiguration, options: VideoDitherOptions = .none, outputURL: URL, progressHandler: ((Float) -> Bool)? = nil, completionHandler: @escaping (Error?) -> Void) {
+    public func dither(
+        video url: URL,
+        resizingTo size: CGSize?,
+        usingMethod ditherMethod: DitherMethod,
+        andPalette palette: Palette,
+        withDitherMethodSettings ditherMethodSettings: SettingsConfiguration,
+        andPaletteSettings paletteSettings: SettingsConfiguration,
+        options: VideoDitherOptions = .none,
+        outputURL: URL,
+        progressHandler: ((Float) -> Bool)? = nil,
+        completionHandler: @escaping (Error?) -> Void
+    ) {
         var videoDescription = VideoDescription(url: url)
         
         if let size {
@@ -60,8 +71,17 @@ public struct VideoDitheringEngine {
     }
     
     /// Dither video using method and palette. Set options and outputURL. ProgressHandler needs a return of `true` to continue, returning false will cancell the dithering and yield an `VideoDitheringError.cancelled` failure in the completion callback.
-    public func dither(videoDescription: VideoDescription, usingMethod ditherMethod: DitherMethod, andPalette palette: Palette, withDitherMethodSettings ditherMethodSettings: SettingsConfiguration, andPaletteSettings paletteSettings: SettingsConfiguration, options: VideoDitherOptions = .none, outputURL: URL, progressHandler: ((Float) -> Bool)? = nil, completionHandler: @escaping (Error?) -> Void) {
-        
+    public func dither(
+        videoDescription: VideoDescription,
+        usingMethod ditherMethod: DitherMethod,
+        andPalette palette: Palette,
+        withDitherMethodSettings ditherMethodSettings: SettingsConfiguration,
+        andPaletteSettings paletteSettings: SettingsConfiguration,
+        options: VideoDitherOptions = .none,
+        outputURL: URL,
+        progressHandler: ((Float) -> Bool)? = nil,
+        completionHandler: @escaping (Error?) -> Void
+    ) {
         guard 
             let originalSize = videoDescription.size
         else {
@@ -84,7 +104,15 @@ public struct VideoDitheringEngine {
         
         let videoAssembler: VideoAssembler
         do {
-            videoAssembler = try VideoAssembler(outputURL: outputURL, width: Int(size.width.rounded()), height: Int(size.height.rounded()), framerate: Int(frameRate), sampleRate: sampleRate, transform: videoDescription.transform, emitFrames: false)
+            videoAssembler = try VideoAssembler(
+                outputURL: outputURL,
+                width: Int(size.width.rounded()),
+                height: Int(size.height.rounded()),
+                framerate: Int(frameRate),
+                sampleRate: sampleRate,
+                transform: videoDescription.transform,
+                emitFrames: false
+            )
         } catch {
             completionHandler(error)
             return
@@ -93,10 +121,16 @@ public struct VideoDitheringEngine {
         let numberOfFrames = videoDescription.numberOfFrames(overrideFramerate: frameRate) ?? 0
         let numberOfBatches = numberOfFrames / workItems
         
-        let lutPalette = palette.lut(fromPalettes: Palettes(), settings: paletteSettings, preferNoGray: ditherMethod.preferNoGray)
+        let lutPalette = palette.lut(
+            fromPalettes: Palettes(),
+            settings: paletteSettings,
+            preferNoGray: ditherMethod.preferNoGray,
+            imageDescriptions: nil
+        )
         let byteColorCache: ByteByteColorCache?
         let floatingColorCache: FloatByteColorCache?
-        if case .lutCollection(let collection) = lutPalette.type, options.contains(.precalculateDitheredColorForAllColors) {
+        if case .lutCollection(let collection) = lutPalette.type,
+           options.contains(.precalculateDitheredColorForAllColors) {
             byteColorCache = .populateWitColors(fromLUT: collection)
             floatingColorCache = byteColorCache?.toFloatingWithoutCopy()
         } else {
@@ -154,7 +188,12 @@ public struct VideoDitheringEngine {
             videoDescription.startReading(reader: assetReader)
             
             DispatchQueue.main.async {
-                dispatchUntilEmpty(queue: queue, contexts: workItemContexts, frames: frames, videoAssembler: videoAssembler) { batchNumber in
+                dispatchUntilEmpty(
+                    queue: queue,
+                    contexts: workItemContexts,
+                    frames: frames,
+                    videoAssembler: videoAssembler
+                ) { batchNumber in
                     if let progressHandler {
                         let progress = min(1, Float(batchNumber) / Float(numberOfBatches))
                         return progressHandler(progress)
@@ -197,12 +236,22 @@ public struct VideoDitheringEngine {
     }
     
     @MainActor
-    private func dispatchUntilEmpty(queue: DispatchQueue, contexts: [WorkItemContext], frames: VideoDescription.GetFramesHandler, videoAssembler: VideoAssembler, count: Int = 0, progressHandler: @escaping (Int) -> Bool, completion: @escaping (_ wasCanceled: Bool) -> Void) {
+    private func dispatchUntilEmpty(
+        queue: DispatchQueue,
+        contexts: [WorkItemContext],
+        frames: VideoDescription.GetFramesHandler,
+        videoAssembler: VideoAssembler,
+        count: Int = 0,
+        progressHandler: @escaping (Int) -> Bool,
+        completion: @escaping (_ wasCanceled: Bool) -> Void
+    ) {
         let numThreads = contexts.count
         let buffers = (0..<numThreads).compactMap { _ in frames.next() }
         let isLastRun = buffers.count != numThreads
         var idempotency = 0
-        dispatch(queue: queue, contexts: contexts, buffers: buffers, idempotency: idempotency) { receivedIdempotency, results in
+        dispatch(queue: queue, contexts: contexts, buffers: buffers, idempotency: idempotency) {
+            receivedIdempotency,
+            results in
             
             let shouldContinue = progressHandler(count)
             
@@ -231,11 +280,25 @@ public struct VideoDitheringEngine {
                 return
             }
             
-            dispatchUntilEmpty(queue: queue, contexts: contexts, frames: frames, videoAssembler: videoAssembler, count: count + 1, progressHandler: progressHandler, completion: completion)
+            dispatchUntilEmpty(
+                queue: queue,
+                contexts: contexts,
+                frames: frames,
+                videoAssembler: videoAssembler,
+                count: count + 1,
+                progressHandler: progressHandler,
+                completion: completion
+            )
         }
     }
     
-    private func dispatch(queue: DispatchQueue, contexts: [WorkItemContext], buffers: [CVPixelBuffer], idempotency: Int, completion: @escaping (Int, [CVPixelBuffer?]) -> Void) {
+    private func dispatch(
+        queue: DispatchQueue,
+        contexts: [WorkItemContext],
+        buffers: [CVPixelBuffer],
+        idempotency: Int,
+        completion: @escaping (Int, [CVPixelBuffer?]) -> Void
+    ) {
         let numThreads = min(buffers.count, contexts.count)
         var results = [CVPixelBuffer?](repeating: nil, count: numThreads)
         var responses: Int = 0
@@ -283,7 +346,17 @@ extension VideoDitheringEngine {
             byteColorCache: ByteByteColorCache?,
             floatingColorCache: FloatByteColorCache?
         
-        init(ditheringEngine: DitheringEngine, context: CIContext, renderSize: CGSize? = nil, ditherMethod: DitherMethod, palette: Palette, ditherMethodSettings: SettingsConfiguration, paletteSettings: SettingsConfiguration, byteColorCache: ByteByteColorCache?, floatingColorCache: FloatByteColorCache?) {
+        init(
+            ditheringEngine: DitheringEngine,
+            context: CIContext,
+            renderSize: CGSize? = nil,
+            ditherMethod: DitherMethod,
+            palette: Palette,
+            ditherMethodSettings: SettingsConfiguration,
+            paletteSettings: SettingsConfiguration,
+            byteColorCache: ByteByteColorCache?,
+            floatingColorCache: FloatByteColorCache?
+        ) {
             self.ditheringEngine = ditheringEngine
             self.context = context
             self.renderSize = renderSize
@@ -372,6 +445,4 @@ public struct VideoDitherOptions: OptionSet {
     
     /// Does not transfer audio from the original video file.
     public static let removeAudio = Self(rawValue: 1 << 1)
-    
-    
 }

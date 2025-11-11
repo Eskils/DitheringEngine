@@ -7,11 +7,15 @@
 
 import Combine
 
-public final class CustomPaletteSettingsConfiguration: SettingsConfiguration {
+public final class CustomPaletteSettingsConfiguration: CustomPaletteSettings {
     public let palette: CurrentValueSubject<BytePalette, Never>
     
     public init(palette: BytePalette = .from(lutCollection: LUTCollection<UInt8>(entries: [SIMD3<UInt8>(0,0,0), SIMD3<UInt8>(255, 255, 255)]))) {
         self.palette = CurrentValueSubject(palette)
+    }
+    
+    public func palette(imageDescription: ImageDescriptionFormat?, preferNoGray: Bool) -> BytePalette {
+        palette.value
     }
     
     public convenience init(entries: [SIMD3<UInt8>]) {

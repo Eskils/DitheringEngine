@@ -17,7 +17,12 @@ public enum Palette: String, CaseIterable, Codable {
 }
 
 extension Palette {
-    func lut(fromPalettes palettes: Palettes, settings: SettingsConfiguration, preferNoGray: Bool) -> BytePalette {
+    func lut(
+        fromPalettes palettes: Palettes,
+        settings: SettingsConfiguration,
+        preferNoGray: Bool,
+        imageDescriptions: ImageDescriptionFormat?
+    ) -> BytePalette {
         switch self {
         case .bw:
             return palettes.bwLut()
@@ -40,8 +45,8 @@ extension Palette {
         case .intellivision:
             return palettes.intellivision(preferNoGray: preferNoGray)
         case .custom:
-            let settings = (settings as? CustomPaletteSettingsConfiguration) ?? .init()
-            return settings.palette.value
+            let settings = (settings as? CustomPaletteSettings) ?? CustomPaletteSettingsConfiguration()
+            return settings.palette(imageDescription: imageDescriptions, preferNoGray: preferNoGray)
         }
     }
     
@@ -66,8 +71,20 @@ extension Palette {
         }
     }
     
-    public func colors(settings: SettingsConfiguration) -> [SIMD3<UInt8>] {
-        let palette = lut(fromPalettes: Palettes(), settings: settings, preferNoGray: false)
+    /// Answer the colors in this palette for `settings`.
+    /// - Parameters:
+    ///   - settings: Settings for this palette
+    ///   - imageDescriptions: Image context, used in palettes that depend on the current image
+    /// - Returns: A list of colors in this palette
+    ///
+    /// Use ``DitheringEngine/DitheringEngine/colors(of:settings:)`` to automatically use the currently set image.
+    public func colors(settings: SettingsConfiguration, imageDescriptions: ImageDescriptionFormat? = nil) -> [SIMD3<UInt8>] {
+        let palette = lut(
+            fromPalettes: Palettes(),
+            settings: settings,
+            preferNoGray: false,
+            imageDescriptions: imageDescriptions
+        )
         return palette.colors()
     }
 }
