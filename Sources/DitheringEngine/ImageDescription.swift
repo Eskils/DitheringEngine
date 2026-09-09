@@ -211,6 +211,23 @@ extension GenericImageDescription {
 extension GenericImageDescription where Color == UInt8 {
     
     /// Sets the image data of the image
+    func setBufferFrom(array: [Color]) -> Bool {
+        if isReleased {
+            return false
+        }
+        
+        let expectedBytesPerRow = self.bytesPerRow
+        
+        array.withUnsafeBufferPointer { buffer in
+            if let baseAddress = buffer.baseAddress {
+                self.buffer.update(from: baseAddress, count: array.count)
+            }
+        }
+        
+        return true
+    }
+    
+    /// Sets the image data of the image
     func setBufferFrom(image: CGImage) -> Bool {
         if isReleased {
             return false
