@@ -64,21 +64,45 @@ extension DitherMethod {
             let intensity = settings.intensity.value
             ditherMethods.whiteNoise(palette: lut, thresholdMapSize: thresholdMapSize, intensity: intensity, performOnCPU: performOnCPU)
         case .noise:
-            let settings = (settings as? NoiseDitheringSettingsConfiguration) ?? .init()
-            guard let noisePattern = settings.noisePattern.value else {
-                ditherMethods.none(palette: lut)
-                return
-            }
-            let noisePatternBuffered = ImageDescription(width: noisePattern.width, height: noisePattern.height, components: noisePattern.bytesPerRow / noisePattern.width)
-            let performOnCPU = settings.performOnCPU.value
-            let intensity = settings.intensity.value
-            if noisePatternBuffered.setBufferFrom(image: noisePattern) {
-                ditherMethods.noise(palette: lut, noisePattern: noisePatternBuffered, intensity: intensity, performOnCPU: performOnCPU)
+            
+            var noisePatternBuffered: ImageDescription?
+            let performOnCPU: Bool
+            let intensity: Float
+            
+            if let settings = settings as? MatrixNoiseDitheringSettingsConfiguration {
+                let matrix = settings.noisePattern.value
+                let pattern = ImageDescription(width: matrix.columns, height: matrix.values.count / matrix.columns, components: 1)
+                if pattern.setBufferFrom(array: matrix.values) {
+                    noisePatternBuffered = pattern
+                }
+                performOnCPU = settings.performOnCPU.value
+                intensity = settings.intensity.value
             } else {
+                let settings = (settings as? NoiseDitheringSettingsConfiguration) ?? .init()
+                if let noisePattern = settings.noisePattern.value {
+                    let pattern = ImageDescription(width: noisePattern.width, height: noisePattern.height, components: noisePattern.bytesPerRow / noisePattern.width)
+                    if pattern.setBufferFrom(image: noisePattern) {
+                        noisePatternBuffered = pattern
+                    }
+                }
+                performOnCPU = settings.performOnCPU.value
+                intensity = settings.intensity.value
+            }
+            
+            if let noisePatternBuffered {
+                ditherMethods.noise(
+                    palette: lut,
+                    noisePattern: noisePatternBuffered,
+                    intensity: intensity,
+                    performOnCPU: performOnCPU
+                )
+                noisePatternBuffered.release()
+            } else {
+                #if DEBUG
                 print("Could not load noise pattern.")
+                #endif
                 ditherMethods.none(palette: lut)
             }
-            noisePatternBuffered.release()
         }
     }
     
